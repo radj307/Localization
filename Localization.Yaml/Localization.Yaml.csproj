@@ -1,30 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
-		<Nullable>enable</Nullable>
-		<Authors>radj307</Authors>
-		<Description>YAML support for radj307.Localization</Description>
-		<PackageProjectUrl>github.com/radj307/Localization</PackageProjectUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<IncludeSymbols>True</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<DocumentationFile>../$(MSBuildProjectName).xml</DocumentationFile>
-		<PackageId>radj307.$(AssemblyName)</PackageId>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>0.0.0</Version>
-		<FileVersion>0.0.0</FileVersion>
-		<Copyright>Copyright © 2022-2023 by $(Authors)</Copyright>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="..\README.md" Pack="true" PackagePath="\"/>
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="YamlDotNet" Version="13.7.1" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\Localization\Localization.csproj" />
-	</ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <Authors>radj307</Authors>
+    <Description>YAML support for radj307.Localization</Description>
+    <PackageProjectUrl>github.com/radj307/Localization</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>../$(MSBuildProjectName).xml</DocumentationFile>
+    <PackageId>radj307.$(AssemblyName)</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>0.1.0</Version>
+    <FileVersion>0.1.0</FileVersion>
+    <Copyright>Copyright © 2022-2023 by $(Authors)</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="13.7.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Localization\Localization.csproj" />
+  </ItemGroup>
 </Project>
