@@ -7,13 +7,6 @@ namespace Localization.Interfaces
     /// </summary>
     public interface ITranslationLoader
     {
-        #region (Const) ExtensionPrefix
-        /// <summary>
-        /// The extension prefix for translation config files.
-        /// </summary>
-        public const string ExtensionPrefix = ".loc";
-        #endregion (Const) ExtensionPrefix
-
         #region Properties
         /// <summary>
         /// Gets the list of file type extensions supported by this translation loader instance.

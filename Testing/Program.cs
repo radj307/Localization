@@ -1,5 +1,6 @@
 ﻿using Localization;
 using Localization.Json;
+using Localization.Yaml;
 using System.Diagnostics;
 
 namespace Testing
@@ -8,13 +9,24 @@ namespace Testing
     {
         static void Main(string[] args)
         {
-            var loader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
+            var yamlLoader = Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
+            var jsonLoader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
 
             foreach (var embeddedResourceName in TestConfigHelper.ResourceNames)
             {
-                var dict = loader.Deserialize(TestConfigHelper.GetManifestResourceString(embeddedResourceName)!);
-                if (dict == null) continue;
-                Loc.Instance.AddLanguageDictionaries(dict);
+                if (yamlLoader.CanLoadFile(embeddedResourceName))
+                {
+                    var dict = yamlLoader.Deserialize(TestConfigHelper.GetManifestResourceString(embeddedResourceName)!);
+                    if (dict == null) continue;
+                    Loc.Instance.AddLanguageDictionaries(dict);
+                }
+                else if (jsonLoader.CanLoadFile(embeddedResourceName))
+                {
+                    var dict = jsonLoader.Deserialize(TestConfigHelper.GetManifestResourceString(embeddedResourceName)!);
+                    if (dict == null) continue;
+                    Loc.Instance.AddLanguageDictionaries(dict);
+                }
+                else throw new InvalidOperationException($"Resource file doesn't have any associated loaders: \"{embeddedResourceName}\"");
             }
 
             // set the current language
@@ -38,12 +50,12 @@ namespace Testing
             var margin = 2 + Loc.Instance.AvailableLanguageNames.Select(s => s.Length).Max();
             foreach (var langName in Loc.Instance.AvailableLanguageNames)
             {
-                Console.WriteLine($"{langName}: {new string(' ', margin - langName.Length)}{Loc.Tr(langName, "VolumeControl.MainWindow.Settings.Language.Header", "(not found)")}");
+                Console.WriteLine($"{langName}: {new string(' ', margin - langName.Length)}{Loc.Tr("VolumeControl.MainWindow.Settings.Language.Header", "(not found)", langName)}");
             }
 
             // serialize the english translation
             string serializeLanguage = "English (US/CA)";
-            var serialized = loader.Serialize(Loc.Instance.Languages[serializeLanguage].AsLanguage(serializeLanguage));
+            var serialized = jsonLoader.Serialize(Loc.Instance.Languages[serializeLanguage].AsLanguage(serializeLanguage));
             // write the serialized translation to a file
             var path = Path.GetFullPath("test.loc.json");
             File.WriteAllText(path, serialized);

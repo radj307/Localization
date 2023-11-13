@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Remove="TestConfigs\de.loc.json" />
     <None Remove="TestConfigs\en.loc.json" />
+    <None Remove="TestConfigs\en.loc.yaml" />
     <None Remove="TestConfigs\fr.loc.json" />
     <None Remove="TestConfigs\it.loc.json" />
     <None Remove="TestConfigs\pt.loc.json" />
@@ -18,6 +19,7 @@
   <ItemGroup>
     <EmbeddedResource Include="TestConfigs\de.loc.json" />
     <EmbeddedResource Include="TestConfigs\en.loc.json" />
+    <EmbeddedResource Include="TestConfigs\en.loc.yaml" />
     <EmbeddedResource Include="TestConfigs\fr.loc.json" />
     <EmbeddedResource Include="TestConfigs\it.loc.json" />
     <EmbeddedResource Include="TestConfigs\pt.loc.json" />
@@ -25,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Localization.Json\Localization.Json.csproj" />
+    <ProjectReference Include="..\Localization.Yaml\Localization.Yaml.csproj" />
     <ProjectReference Include="..\Localization\Localization.csproj" />
   </ItemGroup>
 

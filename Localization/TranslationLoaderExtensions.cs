@@ -1,6 +1,7 @@
 ﻿using Localization.Interfaces;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Localization
 {
@@ -10,6 +11,14 @@ namespace Localization
     public static class TranslationLoaderExtensions
     {
         #region Methods
+
+        #region Serialize
+        /// <inheritdoc cref="ITranslationLoader.Serialize(IReadOnlyDictionary{string, IReadOnlyDictionary{string, string}})"/>
+        public static string Serialize(this ITranslationLoader loader, Dictionary<string, Dictionary<string, string>> languageDictionaries)
+        {
+            return loader.Serialize(languageDictionaries.AsReadOnlyDictionary());
+        }
+        #endregion Serialize
 
         #region CanLoadFile
         /// <summary>
@@ -21,11 +30,15 @@ namespace Localization
         public static bool CanLoadFile(this ITranslationLoader loader, string fileName)
         {
             var name = Path.GetFileName(fileName);
-            var extensionPrefixPos = name.IndexOf(ITranslationLoader.ExtensionPrefix);
-            if (extensionPrefixPos == -1)
+            var extensionPrefixStart = name.IndexOf(Loc.ExtensionPrefix);
+            if (extensionPrefixStart == -1)
                 return false;
+            
+            var extensionPrefixEnd = extensionPrefixStart + Loc.ExtensionPrefix.Length;
+            if (extensionPrefixEnd >= name.Length)
+                return loader.SupportedFileExtensions.Contains(string.Empty);
 
-            var fileExtension = name[(extensionPrefixPos + ITranslationLoader.ExtensionPrefix.Length)..];
+            var fileExtension = name[extensionPrefixEnd..];
             if (fileExtension.Length == 0)
                 return false;
 

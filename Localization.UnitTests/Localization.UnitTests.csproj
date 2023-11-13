@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Localization.Json\Localization.Json.csproj" />
+    <ProjectReference Include="..\Localization.Yaml\Localization.Yaml.csproj" />
     <ProjectReference Include="..\Localization\Localization.csproj" />
   </ItemGroup>
 

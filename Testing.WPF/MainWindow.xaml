@@ -1,0 +1,40 @@
+﻿<Window
+    x:Class="Testing.WPF.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:loc="clr-namespace:Localization;assembly=Localization"
+    xmlns:local="clr-namespace:Testing.WPF"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MainWindow"
+    Width="800"
+    Height="450"
+    Loaded="Window_Loaded"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <local:Container x:Key="Container" />
+
+        <DataTemplate DataType="{x:Type local:TestObject}">
+            <TextBlock FontSize="17" Text="{Tr 'MainWindow.block2', DefaultText='PLEASE HELP ME OH MY GOD'}" />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock FontSize="20" Text="{Tr 'MainWindow.TextBlock'}" />
+
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Items, Source={StaticResource Container}}" />
+
+        <ComboBox
+            Grid.Row="2"
+            DataContext="{Binding Source={x:Static loc:Loc.Instance}}"
+            FontSize="20"
+            ItemsSource="{Binding AvailableLanguageNames}"
+            SelectedItem="{Binding CurrentLanguageName}" />
+    </Grid>
+</Window>

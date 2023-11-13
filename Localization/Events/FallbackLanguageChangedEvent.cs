@@ -5,10 +5,10 @@ namespace Localization.Events
     /// <summary>
     /// Arguments for events that occur when the fallback language changes.
     /// </summary>
-    public sealed class FallbackLanguageChangeEventArgs : HandledEventArgs
+    public sealed class FallbackLanguageChangedEventArgs : HandledEventArgs
     {
         #region Constructor
-        internal FallbackLanguageChangeEventArgs(string? oldLanguageName, string? newLanguageName)
+        internal FallbackLanguageChangedEventArgs(string? oldLanguageName, string? newLanguageName)
         {
             OldLanguageName = oldLanguageName;
             NewLanguageName = newLanguageName;
@@ -26,5 +26,5 @@ namespace Localization.Events
         public string? NewLanguageName { get; }
         #endregion Properties
     }
-    public delegate void FallbackLanguageChangeEventHandler(Loc instance, FallbackLanguageChangeEventArgs e);
+    public delegate void FallbackLanguageChangeEventHandler(Loc instance, FallbackLanguageChangedEventArgs e);
 }

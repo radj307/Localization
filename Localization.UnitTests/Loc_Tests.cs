@@ -1,6 +1,5 @@
 using Localization.Events;
 using Localization.Json;
-using System.Diagnostics;
 
 namespace Localization.UnitTests
 {
@@ -212,6 +211,16 @@ namespace Localization.UnitTests
             Loc.Instance.UseStringPathAsFallback = true;
             Assert.Same("jkl;", Loc.Instance.Translate("jkl;"));
         }
+        [Fact]
+        public void Translate_UsesFallbackLanguage()
+        {
+            Loc.Instance.AddLanguageDictionary("fallback", new() { { "A.B.C", "value" } });
+            Loc.Instance.FallbackLanguageName = "fallback";
+
+            Assert.Equal("value", Loc.Instance.Translate("A.B.C"));
+
+            Loc.Instance.ClearLanguages(true, true);
+        }
         #endregion Translate
 
         #region CurrentLanguageName
@@ -406,7 +415,6 @@ namespace Localization.UnitTests
 
             var result = Loc.Instance.LoadFromDirectory(Path.GetDirectoryName(tempFile)!);
             Assert.NotNull(result);
-            Assert.NotEmpty(result);
             Assert.NotEmpty(Loc.Instance.Languages);
             Assert.Equal("world", Loc.Instance.Translate("ShowDebugInfo.ConfigPath.Tooltip", null, "English (US/CA)"));
 
@@ -416,19 +424,7 @@ namespace Localization.UnitTests
         }
         #endregion LoadFromDirectory
 
-        [Fact]
-        public void MissingTranslationStringRequested_Fires()
-        {
-            bool set = false;
-            var handler = new MissingTranslationStringRequestedEventHandler((_, _) =>
-            {
-                set = true;
-            });
-            Loc.Instance.MissingTranslationStringRequested += handler;
-
-            Loc.Instance.Translate("A.B.C");
-            Assert.True(set);
-        }
+        #region MissingTranslationStringRequested
         [Fact]
         public void MissingTranslationStringRequested_IsAccurate()
         {
@@ -451,6 +447,149 @@ namespace Localization.UnitTests
             Assert.NotNull(eventArgs);
             Assert.Equal("A.B.C", eventArgs.StringPath);
             Assert.Equal("", eventArgs.LanguageName);
+
+            Loc.Instance.MissingTranslationStringRequested -= handler;
         }
+        #endregion MissingTranslationStringRequested
+
+        #region CurrentLanguageChanged
+        [Fact]
+        public void CurrentLanguageChanged_IsAccurate()
+        {
+            object? sender = null;
+            CurrentLanguageChangedEventArgs? eventArgs = null;
+            var handler = new CurrentLanguageChangeEventHandler((s, e) =>
+            {
+                sender = s;
+                eventArgs = e;
+            });
+            Loc.Instance.CurrentLanguageChanged += handler;
+            Loc.Instance.CurrentLanguageName = "en";
+
+            // test sender
+            Assert.NotNull(sender);
+            Assert.Same(Loc.Instance, sender);
+
+            // test event args
+            Assert.NotNull(eventArgs);
+            Assert.Equal("", eventArgs.OldLanguageName);
+            Assert.Equal("en", eventArgs.NewLanguageName);
+            
+            Loc.Instance.CurrentLanguageName = string.Empty;
+            Loc.Instance.CurrentLanguageChanged -= handler;
+        }
+        #endregion CurrentLanguageChanged
+
+        #region CurrentLanguageChanging
+        [Fact]
+        public void CurrentLanguageChanging_IsAccurate()
+        {
+            object? sender = null;
+            CurrentLanguageChangedEventArgs? eventArgs = null;
+            var handler = new CurrentLanguageChangeEventHandler((s, e) =>
+            {
+                sender = s;
+                eventArgs = e;
+            });
+            Loc.Instance.CurrentLanguageChanging += handler;
+            Loc.Instance.CurrentLanguageName = "en";
+
+            // test sender
+            Assert.NotNull(sender);
+            Assert.Same(Loc.Instance, sender);
+
+            // test event args
+            Assert.NotNull(eventArgs);
+            Assert.Equal("", eventArgs.OldLanguageName);
+            Assert.Equal("en", eventArgs.NewLanguageName);
+
+            Loc.Instance.CurrentLanguageName = string.Empty;
+            Loc.Instance.CurrentLanguageChanging -= handler;
+        }
+        [Fact]
+        public void CurrentLanguageChanging_CanCancel()
+        {
+            var handler = new CurrentLanguageChangeEventHandler((s, e) =>
+            {
+                e.Handled = true;
+            });
+            Loc.Instance.CurrentLanguageChanging += handler;
+            Loc.Instance.CurrentLanguageName = "en";
+
+            Assert.NotEqual("en", Loc.Instance.CurrentLanguageName);
+            
+            Loc.Instance.CurrentLanguageChanging -= handler;
+        }
+        #endregion CurrentLanguageChanging
+
+        #region FallbackLanguageChanged
+        [Fact]
+        public void FallbackLanguageChanged_IsAccurate()
+        {
+            object? sender = null;
+            FallbackLanguageChangedEventArgs? eventArgs = null;
+            var handler = new FallbackLanguageChangeEventHandler((s, e) =>
+            {
+                sender = s;
+                eventArgs = e;
+            });
+            Loc.Instance.FallbackLanguageChanged += handler;
+            Loc.Instance.FallbackLanguageName = "en";
+
+            // test sender
+            Assert.NotNull(sender);
+            Assert.Same(Loc.Instance, sender);
+
+            // test event args
+            Assert.NotNull(eventArgs);
+            Assert.Null(eventArgs.OldLanguageName);
+            Assert.Equal("en", eventArgs.NewLanguageName);
+
+            Loc.Instance.FallbackLanguageName = null;
+            Loc.Instance.FallbackLanguageChanged -= handler;
+        }
+        #endregion FallbackLanguageChanged
+
+        #region FallbackLanguageChanging
+        [Fact]
+        public void FallbackLanguageChanging_IsAccurate()
+        {
+            object? sender = null;
+            FallbackLanguageChangedEventArgs? eventArgs = null;
+            var handler = new FallbackLanguageChangeEventHandler((s, e) =>
+            {
+                sender = s;
+                eventArgs = e;
+            });
+            Loc.Instance.FallbackLanguageChanging += handler;
+            Loc.Instance.FallbackLanguageName = "en";
+
+            // test sender
+            Assert.NotNull(sender);
+            Assert.Same(Loc.Instance, sender);
+
+            // test event args
+            Assert.NotNull(eventArgs);
+            Assert.Null(eventArgs.OldLanguageName);
+            Assert.Equal("en", eventArgs.NewLanguageName);
+
+            Loc.Instance.FallbackLanguageName = null;
+            Loc.Instance.FallbackLanguageChanging -= handler;
+        }
+        [Fact]
+        public void FallbackLanguageChanging_CanCancel()
+        {
+            var handler = new FallbackLanguageChangeEventHandler((s, e) =>
+            {
+                e.Handled = true;
+            });
+            Loc.Instance.FallbackLanguageChanging += handler;
+            Loc.Instance.FallbackLanguageName = "en";
+
+            Assert.NotEqual("en", Loc.Instance.FallbackLanguageName);
+
+            Loc.Instance.FallbackLanguageChanging -= handler;
+        }
+        #endregion FallbackLanguageChanging
     }
 }

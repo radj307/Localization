@@ -5,10 +5,10 @@ namespace Localization.Events
     /// <summary>
     /// Arguments for events that occur when the current language changes.
     /// </summary>
-    public sealed class CurrentLanguageChangeEventArgs : HandledEventArgs
+    public sealed class CurrentLanguageChangedEventArgs : HandledEventArgs
     {
         #region Constructor
-        internal CurrentLanguageChangeEventArgs(string oldLanguageName, string newLanguageName)
+        internal CurrentLanguageChangedEventArgs(string oldLanguageName, string newLanguageName)
         {
             OldLanguageName = oldLanguageName;
             NewLanguageName = newLanguageName;
@@ -26,5 +26,5 @@ namespace Localization.Events
         public string NewLanguageName { get; }
         #endregion Properties
     }
-    public delegate void CurrentLanguageChangeEventHandler(Loc instance, CurrentLanguageChangeEventArgs e);
+    public delegate void CurrentLanguageChangeEventHandler(Loc instance, CurrentLanguageChangedEventArgs e);
 }

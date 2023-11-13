@@ -3,9 +3,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Localization.Json
 {
+    /// <summary>
+    /// Default loader for JSON translation config files.
+    /// </summary>
     public class JsonTranslationLoader : ITranslationLoader
     {
         #region Constructors
@@ -67,7 +71,7 @@ namespace Localization.Json
                     }
                     break;
                 case JTokenType.Object:
-                    foreach (var child in ((JObject)current).Children())
+                    foreach (var child in ((JObject)current).Children().Reverse()) //< enumerate children in reverse so they get added to the dictionary in the right order
                     {
                         stack.Push(child);
                     }
@@ -81,30 +85,6 @@ namespace Localization.Json
         }
         #endregion Deserialize
 
-        #region (Private) CreateSubNode
-        private static JObject CreateSubNode(JObject root, string[] path)
-        {
-            JObject node = root;
-            for (int i = 0, i_max = path.Length; i < i_max; ++i)
-            {
-                var currentPathSegment = path[i];
-                if (node.TryGetValue(currentPathSegment, out var existingSubNode))
-                {
-                    if (existingSubNode.Type != JTokenType.Object)
-                        throw new InvalidOperationException($"Expected path segment \"{currentPathSegment}\" to be an object!");
-                    node = (JObject)existingSubNode;
-                }
-                else
-                {
-                    var subNode = new JObject();
-                    node.Add(path[i], subNode);
-                    node = subNode;
-                }
-            }
-            return node;
-        }
-        #endregion (Private) CreateSubNode
-
         #region Serialize
         public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations, Formatting formatting)
         {
@@ -114,7 +94,7 @@ namespace Localization.Json
             {
                 foreach (var (path, value) in languageDict)
                 {
-                    var node = CreateSubNode(root, path.Split('.'));
+                    var node = CreateBranch(root, path.Split(Loc.PathSeparator));
                     node.Add(languageName, value);
                 }
             }
@@ -124,6 +104,30 @@ namespace Localization.Json
         public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations)
             => Serialize(translations, Formatting.Indented);
         #endregion Serialize
+
+        #region (Private) CreateBranch
+        private static JObject CreateBranch(JObject root, string[] path)
+        {
+            JObject node = root;
+            for (int i = 0, i_max = path.Length; i < i_max; ++i)
+            {
+                var currentPathSegment = path[i];
+                if (node.TryGetValue(currentPathSegment, out var existingSubNode))
+                {
+                    if (existingSubNode.Type != JTokenType.Object)
+                        throw new InvalidOperationException($"Expected {nameof(JToken)} for path segment \"{currentPathSegment}\" in \"{string.Join(Loc.PathSeparator, path)}\" to be an object (was {existingSubNode.Type:G})!");
+                    node = (JObject)existingSubNode;
+                }
+                else
+                {
+                    var subNode = new JObject();
+                    node.Add(currentPathSegment, subNode);
+                    node = subNode;
+                }
+            }
+            return node;
+        }
+        #endregion (Private) CreateBranch
 
         #endregion Methods
     }

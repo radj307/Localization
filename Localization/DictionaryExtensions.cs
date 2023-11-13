@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Localization
 {
@@ -17,6 +18,10 @@ namespace Localization
             }
             value = default!;
             return false;
+        }
+        public static IReadOnlyDictionary<TKey, IReadOnlyDictionary<TSubKey, TValue>> AsReadOnlyDictionary<TKey, TSubKey, TValue>(this Dictionary<TKey, Dictionary<TSubKey, TValue>> dictionary)
+        {
+            return (IReadOnlyDictionary<TKey, IReadOnlyDictionary<TSubKey, TValue>>)dictionary.Select(d => (d.Key, (IReadOnlyDictionary<string, string>)d.Value)).ToDictionary(pr => pr.Key, pr => pr.Item2);
         }
     }
 }
