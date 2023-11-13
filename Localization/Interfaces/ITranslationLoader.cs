@@ -12,7 +12,7 @@ namespace Localization.Interfaces
         /// Gets the list of file type extensions supported by this translation loader instance.
         /// </summary>
         /// <remarks>
-        /// File extensions in this list shall not include the <see cref="ExtensionPrefix"/>, and should include the '.' prefix.
+        /// File extensions in this list shall not include the <see cref="Loc.ExtensionPrefix"/>, and should include the '.' prefix.
         /// </remarks>
         string[] SupportedFileExtensions { get; }
         #endregion Properties

@@ -67,7 +67,7 @@ namespace Localization
         {
             if (!File.Exists(filePath)) return null;
 
-            return loader.Deserialize(File.ReadAllText(filePath));
+            return loader.Deserialize(File.ReadAllText(filePath, System.Text.Encoding.UTF8));
         }
         #endregion LoadFromFile
 

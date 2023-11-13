@@ -1,4 +1,3 @@
-using Localization.Events;
 using Localization.Json;
 
 namespace Localization.UnitTests
@@ -445,7 +444,7 @@ namespace Localization.UnitTests
 
             // test event args
             Assert.NotNull(eventArgs);
-            Assert.Equal("A.B.C", eventArgs.StringPath);
+            Assert.Equal("A.B.C", eventArgs.Key);
             Assert.Equal("", eventArgs.LanguageName);
 
             Loc.Instance.MissingTranslationStringRequested -= handler;

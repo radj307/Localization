@@ -50,9 +50,16 @@ namespace Testing.WPF
             Loc.Instance.MissingTranslationStringRequested += this.Instance_MissingTranslationStringRequested;
         }
 
-        private void Instance_MissingTranslationStringRequested(object sender, Localization.Events.MissingTranslationStringRequestedEventArgs e)
+        private void Instance_MissingTranslationStringRequested(object sender, MissingTranslationStringRequestedEventArgs e)
         {
-            MissingTranslations.Add(new(e.LanguageName, e.StringPath));
+            if (e.Keys != null)
+            {
+                foreach (var key in e.Keys)
+                {
+                    MissingTranslations.Add(new(e.LanguageName, key));
+                }
+            }
+            else MissingTranslations.Add(new(e.LanguageName, e.Key!));
         }
 
         public ObservableCollection<MissingTranslation> MissingTranslations { get; } = new();

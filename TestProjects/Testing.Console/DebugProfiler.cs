@@ -241,5 +241,119 @@ namespace Testing
 
         #endregion Methods
     }
+    public class DebugProfiler2
+    {
+        public DebugProfiler2(int count) => Count = count;
+        public DebugProfiler2() { }
+
+        private readonly Stopwatch _stopwatch = new();
+
+        public int Count { get; set; } = 100000;
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public TimeSpan ProfileOnce(Action code, Action? setup = null, Action? teardown = null)
+        {
+            _stopwatch.Reset();
+
+            setup?.Invoke();
+
+            _stopwatch.Start();
+            code.Invoke();
+            _stopwatch.Stop();
+
+            teardown?.Invoke();
+
+            return _stopwatch.Elapsed;
+        }
+        public double ProfileOnce<TUnit>(Action code, Action? setup = null, Action? teardown = null) where TUnit : ITimeUnit, new()
+            => ProfileOnce(code, setup, teardown).Ticks / Stopwatch.Frequency * new TUnit().UnitTicksPerSecond;
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public TimeSpan Profile(Action code, Action<int>? setup = null, Action<int>? teardown = null)
+        {
+            var times = new long[Count];
+            for (int i = 0; i < Count; ++i)
+            {
+                setup?.Invoke(i);
+
+                times[i] = ProfileOnce(code).Ticks;
+
+                teardown?.Invoke(i);
+            }
+            return new TimeSpan((long)Math.Round(times.Average()));
+        }
+        public double Profile<TUnit>(Action code, Action<int>? setup = null, Action<int>? teardown = null) where TUnit : ITimeUnit, new()
+            => Profile(code, setup, teardown).Ticks / Stopwatch.Frequency * new TUnit().UnitTicksPerSecond;
+
+        public DebugProfiler2 Profile(Action code, Action<int> setup, Action<int> teardown, out TimeSpan elapsed)
+        {
+            elapsed = Profile(code, setup, teardown);
+            return this;
+        }
+        public DebugProfiler2 Profile(out TimeSpan elapsed, Action code, Action<int> setup, Action<int> teardown)
+        {
+            elapsed = Profile(code, setup, teardown);
+            return this;
+        }
+        public DebugProfiler2 Profile<TUnit>(Action code, Action<int> setup, Action<int> teardown, out double elapsed) where TUnit : ITimeUnit, new()
+        {
+            elapsed = Profile<TUnit>(code, setup, teardown);
+            return this;
+        }
+        public DebugProfiler2 Profile<TUnit>(out double elapsed, Action code, Action<int> setup, Action<int> teardown) where TUnit : ITimeUnit, new()
+        {
+            elapsed = Profile<TUnit>(code, setup, teardown);
+            return this;
+        }
+        public DebugProfiler2 Profile(Action code, Action<int> setup, out TimeSpan elapsed)
+        {
+            elapsed = Profile(code, setup);
+            return this;
+        }
+        public DebugProfiler2 Profile(out TimeSpan elapsed, Action code, Action<int> setup)
+        {
+            elapsed = Profile(code, setup);
+            return this;
+        }
+        public DebugProfiler2 Profile<TUnit>(Action code, Action<int> setup, out double elapsed) where TUnit : ITimeUnit, new()
+        {
+            elapsed = Profile<TUnit>(code, setup);
+            return this;
+        }
+        public DebugProfiler2 Profile<TUnit>(out double elapsed, Action code, Action<int> setup) where TUnit : ITimeUnit, new()
+        {
+            elapsed = Profile<TUnit>(code, setup);
+            return this;
+        }
+        public DebugProfiler2 Profile(Action code, out TimeSpan elapsed)
+        {
+            elapsed = Profile(code);
+            return this;
+        }
+        public DebugProfiler2 Profile(out TimeSpan elapsed, Action code)
+        {
+            elapsed = Profile(code);
+            return this;
+        }
+        public DebugProfiler2 Profile<TUnit>(Action code, out double elapsed) where TUnit : ITimeUnit, new()
+        {
+            elapsed = Profile<TUnit>(code);
+            return this;
+        }
+        public DebugProfiler2 Profile<TUnit>(out double elapsed, Action code) where TUnit : ITimeUnit, new()
+        {
+            elapsed = Profile<TUnit>(code);
+            return this;
+        }
+
+        public static DebugProfiler2 WithCount(int runCount) => new(runCount);
+
+        public interface ITimeUnit
+        {
+            long UnitTicksPerSecond { get; }
+        }
+    }
+    public readonly struct Milliseconds : DebugProfiler2.ITimeUnit { public long UnitTicksPerSecond => TimeSpan.TicksPerMillisecond; }
+    public readonly struct Microseconds : DebugProfiler2.ITimeUnit { public long UnitTicksPerSecond => 1000000; }
+    public readonly struct Nanoseconds : DebugProfiler2.ITimeUnit { public long UnitTicksPerSecond => 1000000000; }
 #endif
 }

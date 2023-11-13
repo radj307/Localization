@@ -21,15 +21,26 @@ namespace Localization
         INotifyCollectionChanged, INotifyPropertyChanged
     {
         #region Constructors
+        /// <summary>
+        /// Creates a new empty <see cref="LanguageDictionary"/> instance.
+        /// </summary>
         public LanguageDictionary() : this(new ObservableConcurrentDictionary<string, string>()) { }
+        /// <summary>
+        /// Creates a new <see cref="LanguageDictionary"/> instance with the specified <paramref name="translations"/>.
+        /// </summary>
+        /// <param name="translations">A dictionary containing translations.</param>
         public LanguageDictionary(ObservableConcurrentDictionary<string, string> translations)
         {
             _translationStrings = translations;
         }
-        public LanguageDictionary(IReadOnlyDictionary<string, string> translatedStrings)
+        /// <summary>
+        /// Creates a new <see cref="LanguageDictionary"/> instance with the specified <paramref name="translations"/>.
+        /// </summary>
+        /// <param name="translations">A dictionary containing translations.</param>
+        public LanguageDictionary(IReadOnlyDictionary<string, string> translations)
         {
             _translationStrings = new ObservableConcurrentDictionary<string, string>();
-            Merge(translatedStrings);
+            Merge(translations);
         }
         #endregion Constructors
 
@@ -74,7 +85,7 @@ namespace Localization
         /// </summary>
         /// <param name="languageName">The name of this language.</param>
         /// <returns>A dictionary where the keys correspond to the language name, and values are subdictionaries where the keys are the paths and values are the translated strings.</returns>
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> ToDictionary(string languageName)
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> ToLanguageDictionaries(string languageName)
         {
             return new Dictionary<string, IReadOnlyDictionary<string, string>>()
             {
@@ -86,20 +97,26 @@ namespace Localization
         #region Interface Implementation
 
         #region Properties
+        /// <inheritdoc/>
         public ICollection<string> Keys => ((IDictionary<string, string>)_translationStrings).Keys;
+        /// <inheritdoc/>
         public ICollection<string> Values => ((IDictionary<string, string>)_translationStrings).Values;
+        /// <inheritdoc/>
         public int Count => ((ICollection<KeyValuePair<string, string>>)_translationStrings).Count;
+        /// <inheritdoc/>
         public bool IsReadOnly => ((ICollection<KeyValuePair<string, string>>)_translationStrings).IsReadOnly;
         IEnumerable<string> IReadOnlyDictionary<string, string>.Keys => ((IReadOnlyDictionary<string, string>)_translationStrings).Keys;
         IEnumerable<string> IReadOnlyDictionary<string, string>.Values => ((IReadOnlyDictionary<string, string>)_translationStrings).Values;
         #endregion Properties
 
         #region Events
+        /// <inheritdoc/>
         public event NotifyCollectionChangedEventHandler CollectionChanged
         {
             add => ((INotifyCollectionChanged)_translationStrings).CollectionChanged += value;
             remove => ((INotifyCollectionChanged)_translationStrings).CollectionChanged -= value;
         }
+        /// <inheritdoc/>
         public event PropertyChangedEventHandler PropertyChanged
         {
             add => ((INotifyPropertyChanged)_translationStrings).PropertyChanged += value;
@@ -108,15 +125,25 @@ namespace Localization
         #endregion Events
 
         #region Methods
+        /// <inheritdoc/>
         public void Add(string key, string value) => ((IDictionary<string, string>)_translationStrings).Add(key, value);
+        /// <inheritdoc/>
         public bool ContainsKey(string key) => ((IDictionary<string, string>)_translationStrings).ContainsKey(key);
+        /// <inheritdoc/>
         public bool Remove(string key) => ((IDictionary<string, string>)_translationStrings).Remove(key);
+        /// <inheritdoc/>
         public bool TryGetValue(string key, out string value) => ((IDictionary<string, string>)_translationStrings).TryGetValue(key, out value);
+        /// <inheritdoc/>
         public void Add(KeyValuePair<string, string> item) => ((ICollection<KeyValuePair<string, string>>)_translationStrings).Add(item);
+        /// <inheritdoc/>
         public void Clear() => ((ICollection<KeyValuePair<string, string>>)_translationStrings).Clear();
+        /// <inheritdoc/>
         public bool Contains(KeyValuePair<string, string> item) => ((ICollection<KeyValuePair<string, string>>)_translationStrings).Contains(item);
+        /// <inheritdoc/>
         public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex) => ((ICollection<KeyValuePair<string, string>>)_translationStrings).CopyTo(array, arrayIndex);
+        /// <inheritdoc/>
         public bool Remove(KeyValuePair<string, string> item) => ((ICollection<KeyValuePair<string, string>>)_translationStrings).Remove(item);
+        /// <inheritdoc/>
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => ((IEnumerable<KeyValuePair<string, string>>)_translationStrings).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_translationStrings).GetEnumerator();
         #endregion Methods

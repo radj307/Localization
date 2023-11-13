@@ -80,9 +80,9 @@ namespace Localization.UnitTests
 
             var loader = new JsonTranslationLoader();
             // test method impl
-            loader.Serialize(Loc.Instance.Languages["en"].ToDictionary("en"), Formatting.None);
+            loader.Serialize(Loc.Instance.Languages["en"].ToLanguageDictionaries("en"), Formatting.None);
             // test interface impl
-            loader.Serialize(Loc.Instance.Languages["en"].ToDictionary("en"));
+            loader.Serialize(Loc.Instance.Languages["en"].ToLanguageDictionaries("en"));
 
             Loc.Instance.ClearLanguages();
         }

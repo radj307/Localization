@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Localization.Events
+namespace Localization
 {
     /// <summary>
     /// Arguments for events that occur when the fallback language changes.
@@ -26,5 +26,10 @@ namespace Localization.Events
         public string? NewLanguageName { get; }
         #endregion Properties
     }
-    public delegate void FallbackLanguageChangeEventHandler(Loc instance, FallbackLanguageChangedEventArgs e);
+    /// <summary>
+    /// Event that occurs when the fallback language is changing or has changed.
+    /// </summary>
+    /// <param name="sender">The <see cref="Loc"/> instance that fired the event.</param>
+    /// <param name="e">The <see cref="FallbackLanguageChangedEventArgs"/> instance for this event.</param>
+    public delegate void FallbackLanguageChangeEventHandler(object? sender, FallbackLanguageChangedEventArgs e);
 }

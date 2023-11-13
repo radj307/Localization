@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Localization
 {
@@ -8,10 +9,15 @@ namespace Localization
     public sealed class MissingTranslationException : Exception
     {
         #region Constructor
-        internal MissingTranslationException(string languageName, string stringPath)
+        internal MissingTranslationException(string languageName, IEnumerable<string> keys)
         {
             LanguageName = languageName;
-            StringPath = stringPath;
+            Keys = keys;
+        }
+        internal MissingTranslationException(string languageName, string key)
+        {
+            LanguageName = languageName;
+            Key = key;
         }
         #endregion Constructor
 
@@ -21,9 +27,15 @@ namespace Localization
         /// </summary>
         public string LanguageName { get; }
         /// <summary>
-        /// Gets the missing string path that caused the exception.
+        /// Gets the missing translation keys.
         /// </summary>
-        public string StringPath { get; }
+        /// <returns>The missing keys when multiple keys were provided; otherwise when a single key was provided, <see langword="null"/>.</returns>
+        public IEnumerable<string>? Keys { get; }
+        /// <summary>
+        /// Gets the missing translation key.
+        /// </summary>
+        /// <returns>The missing key <see cref="string"/> when a single key was provided; otherwise when multiple keys were provided, <see langword="null"/>.</returns>
+        public string? Key { get; }
         #endregion Properties
     }
 }
