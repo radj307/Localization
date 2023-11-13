@@ -2,8 +2,10 @@ name: Upload Nuget Packages
 
 on:
   workflow_run:
-    workflows: ['Update Version']
-    types: ['Completed']
+    workflows:
+      - 'Update Version'
+    types:
+      - 'Completed'
 
 defaults:
   run:
