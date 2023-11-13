@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
-using System.Windows.Media.TextFormatting;
 
 namespace Localization.WPF
 {
@@ -12,15 +10,15 @@ namespace Localization.WPF
         #region Constructors
         public TrExtension()
         {
-            Path = null!;
+            Key = null!;
         }
-        public TrExtension(string stringPath)
+        public TrExtension(string key)
         {
-            Path = stringPath;
+            Key = key;
         }
-        public TrExtension(string stringPath, string? defaultText)
+        public TrExtension(string key, string? defaultText)
         {
-            Path = stringPath;
+            Key = key;
             DefaultText = defaultText;
         }
         #endregion Constructors
@@ -31,8 +29,8 @@ namespace Localization.WPF
         #endregion Fields
 
         #region Properties
-        [ConstructorArgument("stringPath")]
-        public string Path { get; set; }
+        [ConstructorArgument("key")]
+        public string Key { get; set; }
         [ConstructorArgument("defaultText")]
         public string? DefaultText { get; set; }
         public string? LanguageName { get; set; }
@@ -40,8 +38,6 @@ namespace Localization.WPF
         public string Prefix { get; set; } = string.Empty;
         public string Suffix { get; set; } = string.Empty;
         #endregion Properties
-
-        #region Methods
 
         #region ProvideValue
         public override object ProvideValue(IServiceProvider serviceProvider)
@@ -52,31 +48,20 @@ namespace Localization.WPF
             // setup bindings
             if (translationBindingInst == null)
             {
-                translationBindingInst ??= new TranslationBinding(Path)
-                {
-                    DefaultText = DefaultText,
-                    LanguageName = LanguageName,
-                    StringComparison = StringComparison,
-                    Prefix = Prefix,
-                    Suffix = Suffix
-                };
+                translationBindingInst = new TranslationBinding(this);
                 binding = new Binding(nameof(TranslationBinding.Text))
                 {
                     Source = translationBindingInst,
                 };
             }
 
-            var targetObject = provideValueTarget.TargetObject as DependencyObject;
-            if (targetObject == null) return this;
+            if (provideValueTarget.TargetObject is not DependencyObject targetObject) return this;
             var targetProperty = provideValueTarget.TargetProperty as DependencyProperty;
 
             BindingOperations.SetBinding(targetObject, targetProperty, binding);
-            var path = (string)targetObject!.GetValue(targetProperty);
 
             return binding.ProvideValue(serviceProvider);
         }
         #endregion ProvideValue
-
-        #endregion Methods
     }
 }

@@ -26,6 +26,7 @@ namespace Localization.Internal
     public class ObservableConcurrentDictionary<TKey, TValue> :
         ICollection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>,
         IReadOnlyObservableConcurrentDictionary<TKey, TValue>,
+        IReadOnlyDictionary<TKey, TValue>,
         INotifyCollectionChanged, INotifyPropertyChanged
     {
         private readonly SynchronizationContext _context;

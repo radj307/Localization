@@ -1,0 +1,99 @@
+﻿<Window
+    x:Class="Testing.WPF.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:loc="clr-namespace:Localization;assembly=Localization"
+    xmlns:local="clr-namespace:Testing.WPF"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MainWindow"
+    Width="800"
+    Height="450"
+    Loaded="Window_Loaded"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <local:Container x:Key="Container" />
+        <local:MissingTranslationsCollector x:Key="MissingTranslationLog" />
+
+        <DataTemplate DataType="{x:Type local:TestObject}">
+            <TextBlock FontSize="17" Text="{Tr 'MainWindow.block2', DefaultText='PLEASE HELP ME OH MY GOD'}" />
+        </DataTemplate>
+    </Window.Resources>
+
+    <DockPanel>
+        <StackPanel Background="DarkGray" DockPanel.Dock="Top">
+            <TextBlock Margin="5,3" Text="Missing Translations:" />
+            <ScrollViewer
+                MaxHeight="100"
+                Margin="5,3"
+                FlowDirection="RightToLeft"
+                ScrollChanged="ScrollViewer_ScrollChanged">
+                <ItemsControl FlowDirection="LeftToRight" ItemsSource="{Binding MissingTranslations, Source={StaticResource MissingTranslationLog}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:MissingTranslation}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    Margin="5,0"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding LanguageName}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding StringPath}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </StackPanel>
+
+        <Grid DockPanel.Dock="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ComboBox
+                DataContext="{Binding Source={x:Static loc:Loc.Instance}}"
+                DockPanel.Dock="Bottom"
+                FontSize="20"
+                ItemsSource="{Binding AvailableLanguageNames}"
+                SelectedItem="{Binding CurrentLanguageName}" />
+            <ComboBox
+                Grid.Column="1"
+                DataContext="{Binding Source={x:Static loc:Loc.Instance}}"
+                DockPanel.Dock="Bottom"
+                FontSize="20"
+                ItemsSource="{Binding AvailableLanguageNames}"
+                SelectedItem="{Binding FallbackLanguageName}" />
+            <Button
+                Grid.Column="2"
+                Padding="5,0"
+                Click="ClearLanguagesButton_Click"
+                Content="Clear Languages" />
+            <Button
+                Grid.Column="3"
+                Padding="5,0"
+                Click="AddLanguages_Click"
+                Content="Add Languages" />
+        </Grid>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock FontSize="20" Text="{Tr 'MainWindow.TextBlock'}" />
+
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding Items, Source={StaticResource Container}}" />
+        </Grid>
+    </DockPanel>
+</Window>

@@ -71,7 +71,7 @@ namespace Localization.UnitTests
         [Fact]
         public void Serialize_NoThrow()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
             {
                 {  "A.B.C.D", "!!!" },
                 {  "Root.Sub1.Sub2.Content1", "asdf" },
@@ -80,9 +80,9 @@ namespace Localization.UnitTests
 
             var loader = new JsonTranslationLoader();
             // test method impl
-            loader.Serialize(Loc.Instance.Languages["en"].AsLanguage("en"), Formatting.None);
+            loader.Serialize(Loc.Instance.Languages["en"].ToDictionary("en"), Formatting.None);
             // test interface impl
-            loader.Serialize(Loc.Instance.Languages["en"].AsLanguage("en"));
+            loader.Serialize(Loc.Instance.Languages["en"].ToDictionary("en"));
 
             Loc.Instance.ClearLanguages();
         }

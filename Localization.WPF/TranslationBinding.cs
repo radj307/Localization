@@ -9,34 +9,29 @@ namespace Localization.WPF
     internal class TranslationBinding : INotifyPropertyChanged, IDisposable
     {
         #region Constructor
-        public TranslationBinding(string path)
+        public TranslationBinding(TrExtension trExtension)
         {
-            Path = path;
+            owner = trExtension;
 
             AttachEventHandlers();
         }
         #endregion Constructor
 
         #region Fields
-        private TranslationContext.TranslationSource textSource;
+        private readonly TrExtension owner;
         #endregion Fields
 
         #region Properties
         public string Text
         {
-            get
-            {
-                var context = GetTranslatedString();
-                textSource = context.Source;
-                return Prefix + context.Text + Suffix;
-            }
+            get => Prefix + GetTranslatedString() + Suffix;
         }
-        public string Path { get; set; }
-        public string? DefaultText { get; set; }
-        public string? LanguageName { get; set; }
-        public StringComparison StringComparison { get; set; } = StringComparison.Ordinal;
-        public string Prefix { get; set; } = string.Empty;
-        public string Suffix { get; set; } = string.Empty;
+        public string Key => owner.Key;
+        public string? DefaultText => owner.DefaultText;
+        public string? LanguageName => owner.LanguageName;
+        public StringComparison StringComparison => owner.StringComparison;
+        public string Prefix => owner.Prefix;
+        public string Suffix => owner.Suffix;
         #endregion Properties
 
         #region Events
@@ -45,19 +40,19 @@ namespace Localization.WPF
         #endregion Events
 
         #region GetTranslatedString
-        public TranslationContext GetTranslatedString()
+        public string GetTranslatedString()
         {
             if (StringComparison != StringComparison.Ordinal)
             {
                 if (LanguageName == null)
-                    return Loc.ContextTr(Path, StringComparison, DefaultText);
-                return Loc.ContextTr(Path, StringComparison, DefaultText, LanguageName);
+                    return Loc.Tr(Key, StringComparison, DefaultText);
+                return Loc.Tr(Key, StringComparison, DefaultText, LanguageName);
             }
             else
             {
                 if (LanguageName == null)
-                    return Loc.ContextTr(Path, DefaultText);
-                return Loc.ContextTr(Path, DefaultText, LanguageName);
+                    return Loc.Tr(Key, DefaultText);
+                return Loc.Tr(Key, DefaultText, LanguageName);
             }
         }
         #endregion GetTranslatedString
@@ -81,16 +76,10 @@ namespace Localization.WPF
         #region EventHandlers
         private void Instance_CurrentLanguageChanged(object? sender, CurrentLanguageChangedEventArgs e)
         {
-            if (textSource == TranslationContext.TranslationSource.ExplicitLanguage)
-                return;
-
             NotifyPropertyChanged(nameof(Text));
         }
         private void Instance_FallbackLanguageChanged(object? sender, FallbackLanguageChangedEventArgs e)
         {
-            if (textSource >= TranslationContext.TranslationSource.FallbackLanguage)
-                return;
-
             NotifyPropertyChanged(nameof(Text));
         }
         #endregion EventHandlers

@@ -5,6 +5,7 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <StartupObject>Testing.WPF.Program</StartupObject>
   </PropertyGroup>
 
@@ -27,9 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Localization.Json\Localization.Json.csproj" />
-    <ProjectReference Include="..\Localization.WPF\Localization.WPF.csproj" />
-    <ProjectReference Include="..\Localization\Localization.csproj" />
+    <ProjectReference Include="..\..\Localization.Json\Localization.Json.csproj" />
+    <ProjectReference Include="..\..\Localization.WPF\Localization.WPF.csproj" />
+    <ProjectReference Include="..\..\Localization\Localization.csproj" />
   </ItemGroup>
 
 </Project>

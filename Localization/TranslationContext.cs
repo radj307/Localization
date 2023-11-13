@@ -22,6 +22,7 @@ namespace Localization
                 throw new ArgumentException($"Translation source \"{source:G}\" indicates a language source, but no language name was provided!", nameof(source));
 
             Text = text;
+            LanguageName = null;
             Source = source;
         }
         #endregion Constructors

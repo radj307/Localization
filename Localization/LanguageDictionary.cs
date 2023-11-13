@@ -14,7 +14,11 @@ namespace Localization
     /// Each key contains the path to the corresponding value, and values contain the translated string.
     /// </remarks>
     [DoNotNotify]
-    public sealed class LanguageDictionary : IDictionary<string, string>, IReadOnlyDictionary<string, string>, ICollection<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<string, string>>, IEnumerable, INotifyCollectionChanged, INotifyPropertyChanged
+    public sealed class LanguageDictionary :
+        ICollection<KeyValuePair<string, string>>, IDictionary<string, string>,
+        IReadOnlyObservableConcurrentDictionary<string, string>,
+        IReadOnlyDictionary<string, string>,
+        INotifyCollectionChanged, INotifyPropertyChanged
     {
         #region Constructors
         public LanguageDictionary() : this(new ObservableConcurrentDictionary<string, string>()) { }
@@ -65,7 +69,12 @@ namespace Localization
                     this[path] = value;
             }
         }
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> AsLanguage(string languageName)
+        /// <summary>
+        /// Creates a new language dictionary from this instance and the specified <paramref name="languageName"/>.
+        /// </summary>
+        /// <param name="languageName">The name of this language.</param>
+        /// <returns>A dictionary where the keys correspond to the language name, and values are subdictionaries where the keys are the paths and values are the translated strings.</returns>
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> ToDictionary(string languageName)
         {
             return new Dictionary<string, IReadOnlyDictionary<string, string>>()
             {

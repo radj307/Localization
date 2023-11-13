@@ -62,7 +62,7 @@ namespace Localization.UnitTests
         [Fact]
         public void AddLanguageDictionary_AddsToAvailableLanguageNames()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>());
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>());
 
             Assert.Contains("en", Loc.Instance.AvailableLanguageNames);
 
@@ -71,11 +71,11 @@ namespace Localization.UnitTests
         [Fact]
         public void AddLanguageDictionary_OverwritesExistingWhenWanted()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
             {
                 { "My.Key", "" }
             });
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
             {
                 { "My.Key", "ASDF" }
             }, overwriteExisting: true);
@@ -87,11 +87,11 @@ namespace Localization.UnitTests
         [Fact]
         public void AddLanguageDictionary_DoesntOverwriteExistingWhenUnwanted()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
             {
                 { "My.Key", "" }
             });
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
             {
                 { "My.Key", "ASDF" }
             }, overwriteExisting: false);
@@ -103,11 +103,11 @@ namespace Localization.UnitTests
         [Fact]
         public void AddLanguageDictionary_OverwritesExistingByDefault()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
             {
                 { "My.Key", "" }
             });
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string>
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
             {
                 { "My.Key", "ASDF" }
             });
@@ -183,7 +183,7 @@ namespace Localization.UnitTests
         [Fact]
         public void Translate_CanUseCaseInsensitiveCompare()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
             Loc.Instance.CurrentLanguageName = "en";
 
             Assert.Equal("Hello World!", Loc.Instance.Translate("aA.bB.cC", StringComparison.OrdinalIgnoreCase));
@@ -214,7 +214,7 @@ namespace Localization.UnitTests
         [Fact]
         public void Translate_UsesFallbackLanguage()
         {
-            Loc.Instance.AddLanguageDictionary("fallback", new() { { "A.B.C", "value" } });
+            Loc.Instance.AddLanguage("fallback", new() { { "A.B.C", "value" } });
             Loc.Instance.FallbackLanguageName = "fallback";
 
             Assert.Equal("value", Loc.Instance.Translate("A.B.C"));
@@ -227,7 +227,7 @@ namespace Localization.UnitTests
         [Fact]
         public void CurrentLanguageName_SetsCurrentLanguageDictionary()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
 
             // setup
             Assert.Empty(Loc.Instance.CurrentLanguageName);
@@ -244,7 +244,7 @@ namespace Localization.UnitTests
         [Fact]
         public void CurrentLanguageName_UnsetsCurrentLanguageDictionary()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
 
             // setup
             Assert.Empty(Loc.Instance.CurrentLanguageName);
@@ -265,7 +265,7 @@ namespace Localization.UnitTests
         [Fact]
         public void FallbackLanguageName_SetsFallbackLanguageDictionary()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
 
             // setup
             Assert.Null(Loc.Instance.FallbackLanguageName);
@@ -282,7 +282,7 @@ namespace Localization.UnitTests
         [Fact]
         public void FallbackLanguageName_UnsetsFallbackLanguageDictionary()
         {
-            Loc.Instance.AddLanguageDictionary("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
+            Loc.Instance.AddLanguage("en", new Dictionary<string, string> { { "Aa.Bb.Cc", "Hello World!" } });
 
             // setup
             Assert.Null(Loc.Instance.FallbackLanguageName);

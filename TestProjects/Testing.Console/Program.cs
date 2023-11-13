@@ -55,7 +55,7 @@ namespace Testing
 
             // serialize the english translation
             string serializeLanguage = "English (US/CA)";
-            var serialized = jsonLoader.Serialize(Loc.Instance.Languages[serializeLanguage].AsLanguage(serializeLanguage));
+            var serialized = jsonLoader.Serialize(Loc.Instance.Languages[serializeLanguage].ToDictionary(serializeLanguage));
             // write the serialized translation to a file
             var path = Path.GetFullPath("test.loc.json");
             File.WriteAllText(path, serialized);

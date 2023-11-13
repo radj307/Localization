@@ -22,12 +22,12 @@ namespace Localization.Interfaces
         /// Deserializes the specified <paramref name="serializedData"/> into language dictionaries.
         /// </summary>
         /// <param name="serializedData">A string containing any number of serialized language dictionaries.</param>
-        /// <returns>A dictionary where the keys correspond to the language name, and values are subdictionaries where the keys are the string paths of the corresponding value, and values are the translated string.</returns>
+        /// <returns>A dictionary where the keys correspond to the language name, and values are subdictionaries where the keys are the paths and values are the translated strings.</returns>
         Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData);
         /// <summary>
         /// Serializes the specified <paramref name="languageDictionaries"/> into a string.
         /// </summary>
-        /// <param name="languageDictionaries">A dictionary where the keys correspond to the language name, and values are subdictionaries where the keys are the string paths of the corresponding value, and values are the translated string.</param>
+        /// <returns>A dictionary where the keys correspond to the language name, and values are subdictionaries where the keys are the paths and values are the translated strings.</returns>
         /// <returns>A string containing the serialized <paramref name="languageDictionaries"/>.</returns>
         string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries);
         #endregion Methods

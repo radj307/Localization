@@ -69,11 +69,11 @@ namespace Localization
 
                 var previousValue = _currentLanguageName;
                 _currentLanguageName = value;
-                CurrentLanguageDictionary = Languages.TryGetValue(_currentLanguageName, out var dict)
+                CurrentLanguageDictionary = _currentLanguageName != null && Languages.TryGetValue(_currentLanguageName, out var dict)
                     ? dict
                     : null;
                 NotifyPropertyChanged();
-                NotifyCurrentLanguageChanged(previousValue, _currentLanguageName);
+                NotifyCurrentLanguageChanged(previousValue, _currentLanguageName!);
             }
         }
         private string _currentLanguageName;
@@ -186,6 +186,7 @@ namespace Localization
             {
                 _languages.Remove(_languages.Keys.ElementAt(i));
             }
+            _availableLanguageNames.Clear();
             if (clearCurrentLanguage)
                 CurrentLanguageName = string.Empty;
             if (clearFallbackLanguage)
@@ -193,50 +194,44 @@ namespace Localization
         }
         #endregion ClearLanguages
 
-        #region AddLanguageDictionary
+        #region AddLanguage
         /// <summary>
-        /// Merges the <paramref name="translatedStrings"/> into the language dictionary with the specified <paramref name="languageName"/>.
+        /// Merges the <paramref name="translations"/> into the language dictionary with the specified <paramref name="languageName"/>.
         /// </summary>
         /// <param name="languageName">The name of the language to add.</param>
-        /// <param name="translatedStrings">The language dictionary to merge into the specified <paramref name="languageName"/>.</param>
+        /// <param name="translations">The language dictionary to merge into the specified <paramref name="languageName"/>.</param>
         /// <param name="overwriteExisting">When <see langword="true"/> and a translated string already exists, it is replaced; otherwise when <see langword="false"/>, only new strings are added.</param>
-        /// <returns></returns>
-        public LanguageDictionary AddLanguageDictionary(string languageName, IReadOnlyDictionary<string, string> translatedStrings, bool overwriteExisting = true)
+        /// <returns>The merged <see cref="LanguageDictionary"/>.</returns>
+        public LanguageDictionary AddLanguage(string languageName, IReadOnlyDictionary<string, string> translations, bool overwriteExisting = true)
         {
             if (Languages.TryGetValue(languageName, out var existing))
             {
-                existing.Merge(translatedStrings, overwriteExisting);
+                existing.Merge(translations, overwriteExisting);
                 return existing;
             }
             else
             {
-                _languages.Add(languageName, new LanguageDictionary(translatedStrings));
+                _languages.Add(languageName, new LanguageDictionary(translations));
                 _availableLanguageNames.Add(languageName);
                 return Languages[languageName];
             }
         }
-        /// <summary>
-        /// Merges the <paramref name="translatedStrings"/> into the language dictionary with the specified <paramref name="languageName"/>.
-        /// </summary>
-        /// <param name="languageName">The name of the language to add.</param>
-        /// <param name="translatedStrings">The language dictionary to merge into the specified <paramref name="languageName"/>.</param>
-        /// <param name="overwriteExisting">When <see langword="true"/> and a translated string already exists, it is replaced; otherwise when <see langword="false"/>, only new strings are added.</param>
-        /// <returns></returns>
-        public LanguageDictionary AddLanguageDictionary(string languageName, LanguageDictionary languageDictionary, bool overwriteExisting = true)
+        /// <inheritdoc cref="AddLanguage(string, IReadOnlyDictionary{string, string}, bool)"/>
+        public LanguageDictionary AddLanguage(string languageName, LanguageDictionary translations, bool overwriteExisting = true)
         {
             if (Languages.TryGetValue(languageName, out var existing))
             {
-                existing.Merge(languageDictionary, overwriteExisting);
+                existing.Merge(translations, overwriteExisting);
                 return existing;
             }
             else
             {
-                _languages.Add(languageName, languageDictionary);
+                _languages.Add(languageName, translations);
                 _availableLanguageNames.Add(languageName);
                 return Languages[languageName];
             }
         }
-        #endregion AddLanguageDictionary
+        #endregion AddLanguage
 
         #region AddLanguageDictionaries
         /// <summary>
@@ -248,7 +243,7 @@ namespace Localization
         {
             foreach (var (languageName, languageDict) in languages)
             {
-                AddLanguageDictionary(languageName, languageDict, overwriteExisting);
+                AddLanguage(languageName, languageDict, overwriteExisting);
             }
         }
         /// <summary>
@@ -260,7 +255,7 @@ namespace Localization
         {
             foreach (var (languageName, languageDict) in languages)
             {
-                AddLanguageDictionary(languageName, languageDict, overwriteExisting);
+                AddLanguage(languageName, languageDict, overwriteExisting);
             }
         }
         /// <inheritdoc cref="AddLanguageDictionaries(IReadOnlyDictionary{string, IReadOnlyDictionary{string, string}}, bool)"/>
@@ -268,7 +263,7 @@ namespace Localization
         {
             foreach (var (languageName, languageDict) in languages)
             {
-                AddLanguageDictionary(languageName, languageDict, overwriteExisting);
+                AddLanguage(languageName, languageDict, overwriteExisting);
             }
         }
         #endregion AddLanguageDictionaries
@@ -328,6 +323,58 @@ namespace Localization
             return null;
         }
         #endregion GetTranslationLoaderForFile
+
+        #region GetTranslationLoader
+        /// <summary>
+        /// Gets a translation loader with the specified <paramref name="type"/>.
+        /// </summary>
+        /// <remarks>
+        /// The specified translation loader must have already been added using <see cref="AddTranslationLoader(ITranslationLoader)"/> prior to calling this.
+        /// </remarks>
+        /// <param name="type">The type of <see cref="ITranslationLoader"/> to get.</param>
+        /// <returns><see cref="ITranslationLoader"/> instance with the specified <paramref name="type"/> if found; otherwise, <see langword="null"/>.</returns>
+        public ITranslationLoader? GetTranslationLoader(Type type)
+        {
+            foreach (var loader in TranslationLoaders)
+            {
+                if (loader.GetType().IsAssignableFrom(type)) return loader;
+            }
+            return null;
+        }
+        /// <summary>
+        /// Gets a translation loader of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <remarks>
+        /// The specified translation loader must have already been added using <see cref="AddTranslationLoader(ITranslationLoader)"/> prior to calling this.
+        /// </remarks>
+        /// <typeparam name="T">Class type that implements <see cref="ITranslationLoader"/> to get.</typeparam>
+        /// <returns>The <see cref="ITranslationLoader"/> instance if found; otherwise, <see langword="null"/>.</returns>
+        public T? GetTranslationLoader<T>() where T : class, ITranslationLoader
+            => (T?)GetTranslationLoader(typeof(T))!;
+        #endregion GetTranslationLoader
+        
+        public bool RemoveLanguage(string languageName)
+            => _languages.Remove(languageName);
+
+        public LanguageDictionary? TakeLanguage(string languageName)
+        {
+            if (Languages.TryGetValue(languageName, out var translations))
+            {
+                _languages.Remove(languageName);
+                return translations;
+            }
+            return null;
+        }
+
+        public bool ChangeLanguageName(string currentName, string newName)
+        {
+            if (TakeLanguage(currentName) is LanguageDictionary translations)
+            {
+                AddLanguage(newName, (IReadOnlyDictionary<string, string>)translations);
+                return true;
+            }
+            return false;
+        }
 
         #region LoadFromString
         /// <summary>
@@ -619,7 +666,7 @@ namespace Localization
         public TranslationContext TranslateWithContext(string stringPath, string? defaultText = null)
         {
             if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, out string translatedString))
-                return new(translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
+                return new TranslationContext(translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
             else if (ThrowOnMissingTranslation)
                 throw new MissingTranslationException(CurrentLanguageName, stringPath);
             else
@@ -627,15 +674,15 @@ namespace Localization
                 NotifyMissingTranslationStringRequested(CurrentLanguageName, stringPath);
                 // try default text
                 if (defaultText != null)
-                    return new(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
                 // try fallback language
                 if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, out translatedString))
-                    return new(translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
+                    return new TranslationContext(translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
                 // try string path
                 if (UseStringPathAsFallback)
-                    return new(stringPath, TranslationContext.TranslationSource.StringPath);
+                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
                 // use empty string
-                return new(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         /// <summary>
@@ -655,7 +702,7 @@ namespace Localization
         public TranslationContext TranslateWithContext(string stringPath, StringComparison stringComparison, string? defaultText = null)
         {
             if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, stringComparison, out string translatedString))
-                return new(translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
+                return new TranslationContext(translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
             else if (ThrowOnMissingTranslation)
                 throw new MissingTranslationException(CurrentLanguageName, stringPath);
             else
@@ -663,15 +710,15 @@ namespace Localization
                 NotifyMissingTranslationStringRequested(CurrentLanguageName, stringPath);
                 // try default text
                 if (defaultText != null)
-                    return new(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
                 // try fallback language
                 if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
-                    return new(translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
+                    return new TranslationContext(translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
                 // try string path
                 if (UseStringPathAsFallback)
-                    return new(stringPath, TranslationContext.TranslationSource.StringPath);
+                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
                 // use empty string
-                return new(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         /// <summary>
@@ -693,7 +740,7 @@ namespace Localization
         public TranslationContext TranslateWithContext(string stringPath, string? defaultText, string languageName, bool allowFallback = false)
         {
             if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(stringPath, out string translatedString))
-                return new(translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
+                return new TranslationContext(translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
             else if (ThrowOnMissingTranslation)
                 throw new MissingTranslationException(languageName, stringPath);
             else
@@ -701,19 +748,19 @@ namespace Localization
                 NotifyMissingTranslationStringRequested(languageName, stringPath);
                 // try default text
                 if (defaultText != null)
-                    return new(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
                 else if (allowFallback)
                 { // try current language or fallback language
                     if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, out translatedString))
-                        return new(translatedString, TranslationContext.TranslationSource.CurrentLanguage);
+                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.CurrentLanguage);
                     else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, out translatedString))
-                        return new(translatedString, TranslationContext.TranslationSource.FallbackLanguage);
+                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.FallbackLanguage);
                 }
                 // try string path
                 if (UseStringPathAsFallback)
-                    return new(stringPath, TranslationContext.TranslationSource.StringPath);
+                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
                 // use empty string
-                return new(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         /// <summary>
@@ -736,7 +783,7 @@ namespace Localization
         public TranslationContext TranslateWithContext(string stringPath, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false)
         {
             if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(stringPath, stringComparison, out string translatedString))
-                return new(translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
+                return new TranslationContext(translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
             else if (ThrowOnMissingTranslation)
                 throw new MissingTranslationException(languageName, stringPath);
             else
@@ -744,19 +791,19 @@ namespace Localization
                 NotifyMissingTranslationStringRequested(languageName, stringPath);
                 // try default text
                 if (defaultText != null)
-                    return new(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
                 else if (allowFallback)
                 { // try current language or fallback language
                     if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
-                        return new(translatedString, TranslationContext.TranslationSource.CurrentLanguage);
+                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.CurrentLanguage);
                     else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
-                        return new(translatedString, TranslationContext.TranslationSource.FallbackLanguage);
+                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.FallbackLanguage);
                 }
                 // try string path
                 if (UseStringPathAsFallback)
-                    return new(stringPath, TranslationContext.TranslationSource.StringPath);
+                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
                 // use empty string
-                return new(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         #endregion TranslateWithContext
