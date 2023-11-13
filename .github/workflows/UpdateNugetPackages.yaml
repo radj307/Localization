@@ -5,7 +5,7 @@ on:
     workflows:
       - 'Update Version'
     types:
-      - 'Completed'
+      - 'completed'
 
 defaults:
   run:
