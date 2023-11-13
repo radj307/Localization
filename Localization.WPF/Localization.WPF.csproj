@@ -1,37 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>net6.0-windows</TargetFramework>
-		<UseWPF>true</UseWPF>
-		<Nullable>enable</Nullable>
-		<Authors>radj307</Authors>
-		<Description>.NET localization library</Description>
-		<PackageProjectUrl>github.com/radj307/Localization</PackageProjectUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<IncludeSymbols>True</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<DocumentationFile>../$(MSBuildProjectName).xml</DocumentationFile>
-		<PackageId>radj307.$(AssemblyName)</PackageId>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>0.0.0</Version>
-		<FileVersion>0.0.0</FileVersion>
-		<Copyright>Copyright © 2022-2023 by $(Authors)</Copyright>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="..\README.md" Pack="true" PackagePath="\"/>
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Fody" Version="6.8.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0">
-			<PrivateAssets>All</PrivateAssets>
-		</PackageReference>
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\Localization\Localization.csproj" />
-	</ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <Authors>radj307</Authors>
+    <Description>.NET localization library</Description>
+    <PackageProjectUrl>github.com/radj307/Localization</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>../$(MSBuildProjectName).xml</DocumentationFile>
+    <PackageId>radj307.$(AssemblyName)</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>0.0.0</Version>
+    <FileVersion>0.0.0</FileVersion>
+    <Copyright>Copyright © 2022-2023 by $(Authors)</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Fody" Version="6.8.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Localization\Localization.csproj" />
+  </ItemGroup>
 </Project>
