@@ -10,17 +10,19 @@ namespace Localization
     public readonly struct TranslationContext
     {
         #region Constructors
-        internal TranslationContext(string text, string? languageName, TranslationSource source)
+        internal TranslationContext(string key, string text, string? languageName, TranslationSource source)
         {
+            Key = key;
             Text = text;
             LanguageName = languageName;
             Source = source;
         }
-        internal TranslationContext(string text, TranslationSource source)
+        internal TranslationContext(string key, string text, TranslationSource source)
         {
             if (source >= TranslationSource.ExplicitLanguage && source <= TranslationSource.FallbackLanguage)
                 throw new ArgumentException($"Translation source \"{source:G}\" indicates a language source, but no language name was provided!", nameof(source));
 
+            Key = key;
             Text = text;
             LanguageName = null;
             Source = source;
@@ -36,6 +38,10 @@ namespace Localization
         #endregion Operators
 
         #region Properties
+        /// <summary>
+        /// Gets the key of the requested translation.
+        /// </summary>
+        public string Key { get; }
         /// <summary>
         /// Gets the translated string.
         /// </summary>
@@ -84,9 +90,9 @@ namespace Localization
             /// </summary>
             DefaultText = 3,
             /// <summary>
-            /// Text came from the provided stringPath parameter.
+            /// Text came from the provided key parameter.
             /// </summary>
-            StringPath = 4,
+            Key = 4,
             /// <summary>
             /// Text is an empty string because no other fallback sources were available.
             /// </summary>

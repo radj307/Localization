@@ -206,9 +206,9 @@ namespace Localization.UnitTests
         [Fact]
         public void Translate_ReturnsBlankWhenNotUsingStringPath()
         {
-            Loc.Instance.UseStringPathAsFallback = false;
+            Loc.Instance.UseKeyAsFallback = false;
             Assert.Same("", Loc.Instance.Translate("jkl;"));
-            Loc.Instance.UseStringPathAsFallback = true;
+            Loc.Instance.UseKeyAsFallback = true;
             Assert.Same("jkl;", Loc.Instance.Translate("jkl;"));
         }
         [Fact]
@@ -309,11 +309,11 @@ namespace Localization.UnitTests
         [Fact]
         public void UseStringPathAsFallback_Works()
         {
-            Loc.Instance.UseStringPathAsFallback = false;
+            Loc.Instance.UseKeyAsFallback = false;
 
             Assert.Empty(Loc.Instance.Translate("asdf"));
 
-            Loc.Instance.UseStringPathAsFallback = true;
+            Loc.Instance.UseKeyAsFallback = true;
 
             Assert.Same("asdf", Loc.Instance.Translate("asdf"));
         }

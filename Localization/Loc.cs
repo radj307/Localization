@@ -115,7 +115,7 @@ namespace Localization
         /// Gets or sets whether the Translate/Tr methods will use the requested string path as a final fallback. The default value is <see langword="true"/>.
         /// </summary>
         /// <returns><see langword="true"/> when the Translate/Tr methods use the string path as a fallback; <see langword="false"/> when they use an empty string instead.</returns>
-        public bool UseStringPathAsFallback { get; set; } = true;
+        public bool UseKeyAsFallback { get; set; } = true;
         /// <summary>
         /// Gets or sets whether the Translate/Tr methods will throw an exception when the requested string path wasn't found. The default value is <see langword="false"/>.
         /// </summary>
@@ -135,7 +135,7 @@ namespace Localization
         /// Occurs when a translation wasn't found in the requested language.
         /// </summary>
         public event MissingTranslationStringRequestedEventHandler? MissingTranslationStringRequested;
-        private void NotifyMissingTranslationStringRequested(string languageName, string stringPath) => MissingTranslationStringRequested?.Invoke(this, new MissingTranslationStringRequestedEventArgs(languageName, stringPath));
+        private void NotifyMissingTranslationStringRequested(string languageName, string key) => MissingTranslationStringRequested?.Invoke(this, new MissingTranslationStringRequestedEventArgs(languageName, key));
         /// <summary>
         /// Occurs when the CurrentLanguageName was changed for any reason.
         /// </summary>
@@ -232,6 +232,64 @@ namespace Localization
             }
         }
         #endregion AddLanguage
+
+        #region ReplaceLanguage
+        /// <summary>
+        /// Replaces all translations for the specified <paramref name="languageName"/>.
+        /// </summary>
+        /// <param name="languageName">The name of the language to replace.</param>
+        /// <param name="newTranslations">The new translations for the language.</param>
+        public void ReplaceLanguage(string languageName, LanguageDictionary newTranslations)
+        {
+            RemoveLanguage(languageName);
+            AddLanguage(languageName, newTranslations);
+        }
+        #endregion ReplaceLanguage
+
+        #region RemoveLanguage
+        /// <summary>
+        /// Removes the translations for the specified <paramref name="languageName"/>.
+        /// </summary>
+        /// <param name="languageName"></param>
+        /// <returns></returns>
+        public bool RemoveLanguage(string languageName)
+            => _languages.Remove(languageName);
+        #endregion RemoveLanguage
+
+        #region TakeLanguage
+        /// <summary>
+        /// Gets and removes the translations for the specified <paramref name="languageName"/>.
+        /// </summary>
+        /// <param name="languageName">The name of the language to take.</param>
+        /// <returns>The <see cref="LanguageDictionary"/> for the specified <paramref name="languageName"/> if found; otherwise, <see langword="null"/>.</returns>
+        public LanguageDictionary? TakeLanguage(string languageName)
+        {
+            if (Languages.TryGetValue(languageName, out var translations))
+            {
+                _languages.Remove(languageName);
+                return translations;
+            }
+            return null;
+        }
+        #endregion TakeLanguage
+
+        #region ChangeLanguageName
+        /// <summary>
+        /// Changes the specified <paramref name="languageName"/> to <paramref name="newName"/>.
+        /// </summary>
+        /// <param name="languageName">The name of the language to change the name of.</param>
+        /// <param name="newName">The new name to give to the language.</param>
+        /// <returns><see langword="true"/> when the name was successfully changed; otherwise, <see langword="false"/>.</returns>
+        public bool ChangeLanguageName(string languageName, string newName)
+        {
+            if (TakeLanguage(languageName) is LanguageDictionary translations)
+            {
+                AddLanguage(newName, (IReadOnlyDictionary<string, string>)translations);
+                return true;
+            }
+            return false;
+        }
+        #endregion ChangeLanguageName
 
         #region AddLanguageDictionaries
         /// <summary>
@@ -352,29 +410,6 @@ namespace Localization
         public T? GetTranslationLoader<T>() where T : class, ITranslationLoader
             => (T?)GetTranslationLoader(typeof(T))!;
         #endregion GetTranslationLoader
-        
-        public bool RemoveLanguage(string languageName)
-            => _languages.Remove(languageName);
-
-        public LanguageDictionary? TakeLanguage(string languageName)
-        {
-            if (Languages.TryGetValue(languageName, out var translations))
-            {
-                _languages.Remove(languageName);
-                return translations;
-            }
-            return null;
-        }
-
-        public bool ChangeLanguageName(string currentName, string newName)
-        {
-            if (TakeLanguage(currentName) is LanguageDictionary translations)
-            {
-                AddLanguage(newName, (IReadOnlyDictionary<string, string>)translations);
-                return true;
-            }
-            return false;
-        }
 
         #region LoadFromString
         /// <summary>
@@ -440,439 +475,474 @@ namespace Localization
         #endregion LoadFromDirectory
 
         #region Translate
+        public Loc Translate(string key, out string translation)
+        {
+            translation = Translate(key);
+            return this;
+        }
+        public Loc Translate(string key, string? defaultText, out string translation)
+        {
+            translation = Translate(key, defaultText);
+            return this;
+        }
+        public Loc Translate(string key, StringComparison stringComparison, out string translation)
+        {
+            translation = Translate(key, stringComparison);
+            return this;
+        }
+        public Loc Translate(string key, StringComparison stringComparison, string? defaultText, out string translation)
+        {
+            translation = Translate(key, stringComparison, defaultText);
+            return this;
+        }
+        public Loc Translate(string key, string? defaultText, string languageName, out string translation)
+        {
+            translation = Translate(key, defaultText, languageName);
+            return this;
+        }
+        public Loc Translate(string key, StringComparison stringComparison, string? defaultText, string languageName, out string translation)
+        {
+            translation = Translate(key, stringComparison, defaultText, languageName);
+            return this;
+        }
+        public Loc Translate(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback, out string translation)
+        {
+            translation = Translate(key, stringComparison, defaultText, languageName, allowFallback);
+            return this;
+        }
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the current language.
+        /// Gets the translation for the specified <paramref name="key"/> in the current language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. An empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public string Translate(string stringPath, string? defaultText = null)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public string Translate(string key, string? defaultText = null)
         {
-            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, out string translatedString))
+            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, out string translatedString))
                 return translatedString;
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(CurrentLanguageName, stringPath);
+                throw new MissingTranslationException(CurrentLanguageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(CurrentLanguageName, stringPath);
+                NotifyMissingTranslationStringRequested(CurrentLanguageName, key);
                 // try default text
                 if (defaultText != null)
                     return defaultText;
                 // try fallback language
-                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, out translatedString))
+                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, out translatedString))
                     return translatedString;
                 // use string path / empty string
-                return UseStringPathAsFallback ? stringPath : string.Empty;
+                return UseKeyAsFallback ? key : string.Empty;
             }
         }
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the current language.
+        /// Gets the translation for the specified <paramref name="key"/> in the current language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. An empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public string Translate(string stringPath, StringComparison stringComparison, string? defaultText = null)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public string Translate(string key, StringComparison stringComparison, string? defaultText = null)
         {
-            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, stringComparison, out string translatedString))
+            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, stringComparison, out string translatedString))
                 return translatedString;
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(CurrentLanguageName, stringPath);
+                throw new MissingTranslationException(CurrentLanguageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(CurrentLanguageName, stringPath);
+                NotifyMissingTranslationStringRequested(CurrentLanguageName, key);
                 // try default text
                 if (defaultText != null)
                     return defaultText;
                 // try fallback language
-                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
+                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, stringComparison, out translatedString))
                     return translatedString;
                 // use string path / empty string
-                return UseStringPathAsFallback ? stringPath : string.Empty;
+                return UseKeyAsFallback ? key : string.Empty;
             }
         }
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the specified language.
+        /// Gets the translation for the specified <paramref name="key"/> in the specified language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. An empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public string Translate(string stringPath, string? defaultText, string languageName, bool allowFallback = false)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public string Translate(string key, string? defaultText, string languageName, bool allowFallback = false)
         {
-            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(stringPath, out string translatedString))
+            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(key, out string translatedString))
                 return translatedString;
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(languageName, stringPath);
+                throw new MissingTranslationException(languageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(languageName, stringPath);
+                NotifyMissingTranslationStringRequested(languageName, key);
                 // try default text
                 if (defaultText != null)
                     return defaultText;
                 else if (allowFallback)
                 { // try current language or fallback language
-                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, out translatedString))
+                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, out translatedString))
                         return translatedString;
-                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, out translatedString))
+                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, out translatedString))
                         return translatedString;
                 }
                 // use string path / empty string
-                return UseStringPathAsFallback ? stringPath : string.Empty;
+                return UseKeyAsFallback ? key : string.Empty;
             }
         }
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the specified language.
+        /// Gets the translation for the specified <paramref name="key"/> in the specified language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. An empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public string Translate(string stringPath, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public string Translate(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false)
         {
-            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(stringPath, stringComparison, out string translatedString))
+            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(key, stringComparison, out string translatedString))
                 return translatedString;
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(languageName, stringPath);
+                throw new MissingTranslationException(languageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(languageName, stringPath);
+                NotifyMissingTranslationStringRequested(languageName, key);
                 // try default text
                 if (defaultText != null)
                     return defaultText;
                 else if (allowFallback)
                 { // try current language or fallback language
-                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
+                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, stringComparison, out translatedString))
                         return translatedString;
-                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
+                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, stringComparison, out translatedString))
                         return translatedString;
                 }
                 // use string path / empty string
-                return UseStringPathAsFallback ? stringPath : string.Empty;
+                return UseKeyAsFallback ? key : string.Empty;
             }
         }
         #endregion Translate
 
         #region (Static) Tr
         /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="stringPath"/> in the current language.
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the current language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. An empty string.
         /// </returns>
-        public static string Tr(string stringPath, string? defaultText = null) => Instance.Translate(stringPath, defaultText);
+        public static string Tr(string key, string? defaultText = null) => Instance.Translate(key, defaultText);
         /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="stringPath"/> in the current language.
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the current language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. An empty string.
         /// </returns>
-        public static string Tr(string stringPath, StringComparison stringComparison, string? defaultText = null) => Instance.Translate(stringPath, stringComparison, defaultText);
+        public static string Tr(string key, StringComparison stringComparison, string? defaultText = null) => Instance.Translate(key, stringComparison, defaultText);
         /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="stringPath"/> in the specified language.
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the specified language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. An empty string.
         /// </returns>
-        public static string Tr(string stringPath, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(stringPath, defaultText, languageName, allowFallback);
+        public static string Tr(string key, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(key, defaultText, languageName, allowFallback);
         /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="stringPath"/> in the specified language.
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the specified language.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// The translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. The <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. The <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. An empty string.
         /// </returns>
-        public static string Tr(string stringPath, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(stringPath, stringComparison, defaultText, languageName, allowFallback);
+        public static string Tr(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(key, stringComparison, defaultText, languageName, allowFallback);
         #endregion (Static) Tr
 
         #region TranslateWithContext
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the current language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the current language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public TranslationContext TranslateWithContext(string stringPath, string? defaultText = null)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public TranslationContext TranslateWithContext(string key, string? defaultText = null)
         {
-            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, out string translatedString))
-                return new TranslationContext(translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
+            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, out string translatedString))
+                return new TranslationContext(key, translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(CurrentLanguageName, stringPath);
+                throw new MissingTranslationException(CurrentLanguageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(CurrentLanguageName, stringPath);
+                NotifyMissingTranslationStringRequested(CurrentLanguageName, key);
                 // try default text
                 if (defaultText != null)
-                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(key, defaultText, TranslationContext.TranslationSource.DefaultText);
                 // try fallback language
-                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, out translatedString))
-                    return new TranslationContext(translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
+                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, out translatedString))
+                    return new TranslationContext(key, translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
                 // try string path
-                if (UseStringPathAsFallback)
-                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
+                if (UseKeyAsFallback)
+                    return new TranslationContext(key, key, TranslationContext.TranslationSource.Key);
                 // use empty string
-                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(key, string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the current language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the current language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public TranslationContext TranslateWithContext(string stringPath, StringComparison stringComparison, string? defaultText = null)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public TranslationContext TranslateWithContext(string key, StringComparison stringComparison, string? defaultText = null)
         {
-            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, stringComparison, out string translatedString))
-                return new TranslationContext(translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
+            if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, stringComparison, out string translatedString))
+                return new TranslationContext(key, translatedString, CurrentLanguageName, TranslationContext.TranslationSource.CurrentLanguage);
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(CurrentLanguageName, stringPath);
+                throw new MissingTranslationException(CurrentLanguageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(CurrentLanguageName, stringPath);
+                NotifyMissingTranslationStringRequested(CurrentLanguageName, key);
                 // try default text
                 if (defaultText != null)
-                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(key, defaultText, TranslationContext.TranslationSource.DefaultText);
                 // try fallback language
-                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
-                    return new TranslationContext(translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
+                if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, stringComparison, out translatedString))
+                    return new TranslationContext(key, translatedString, FallbackLanguageName, TranslationContext.TranslationSource.FallbackLanguage);
                 // try string path
-                if (UseStringPathAsFallback)
-                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
+                if (UseKeyAsFallback)
+                    return new TranslationContext(key, key, TranslationContext.TranslationSource.Key);
                 // use empty string
-                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(key, string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public TranslationContext TranslateWithContext(string stringPath, string? defaultText, string languageName, bool allowFallback = false)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public TranslationContext TranslateWithContext(string key, string? defaultText, string languageName, bool allowFallback = false)
         {
-            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(stringPath, out string translatedString))
-                return new TranslationContext(translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
+            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(key, out string translatedString))
+                return new TranslationContext(key, translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(languageName, stringPath);
+                throw new MissingTranslationException(languageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(languageName, stringPath);
+                NotifyMissingTranslationStringRequested(languageName, key);
                 // try default text
                 if (defaultText != null)
-                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(key, defaultText, TranslationContext.TranslationSource.DefaultText);
                 else if (allowFallback)
                 { // try current language or fallback language
-                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, out translatedString))
-                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.CurrentLanguage);
-                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, out translatedString))
-                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.FallbackLanguage);
+                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, out translatedString))
+                        return new TranslationContext(key, translatedString, TranslationContext.TranslationSource.CurrentLanguage);
+                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, out translatedString))
+                        return new TranslationContext(key, translatedString, TranslationContext.TranslationSource.FallbackLanguage);
                 }
                 // try string path
-                if (UseStringPathAsFallback)
-                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
+                if (UseKeyAsFallback)
+                    return new TranslationContext(key, key, TranslationContext.TranslationSource.Key);
                 // use empty string
-                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(key, string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public TranslationContext TranslateWithContext(string stringPath, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false)
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public TranslationContext TranslateWithContext(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false)
         {
-            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(stringPath, stringComparison, out string translatedString))
-                return new TranslationContext(translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
+            if (Languages.TryGetValue(languageName, out var dict) && dict.TryGetValue(key, stringComparison, out string translatedString))
+                return new TranslationContext(key, translatedString, languageName, TranslationContext.TranslationSource.ExplicitLanguage);
             else if (ThrowOnMissingTranslation)
-                throw new MissingTranslationException(languageName, stringPath);
+                throw new MissingTranslationException(languageName, key);
             else
             {
-                NotifyMissingTranslationStringRequested(languageName, stringPath);
+                NotifyMissingTranslationStringRequested(languageName, key);
                 // try default text
                 if (defaultText != null)
-                    return new TranslationContext(defaultText, TranslationContext.TranslationSource.DefaultText);
+                    return new TranslationContext(key, defaultText, TranslationContext.TranslationSource.DefaultText);
                 else if (allowFallback)
                 { // try current language or fallback language
-                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
-                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.CurrentLanguage);
-                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(stringPath, stringComparison, out translatedString))
-                        return new TranslationContext(translatedString, TranslationContext.TranslationSource.FallbackLanguage);
+                    if (CurrentLanguageDictionary != null && CurrentLanguageDictionary.TryGetValue(key, stringComparison, out translatedString))
+                        return new TranslationContext(key, translatedString, TranslationContext.TranslationSource.CurrentLanguage);
+                    else if (FallbackLanguageDictionary != null && FallbackLanguageDictionary.TryGetValue(key, stringComparison, out translatedString))
+                        return new TranslationContext(key, translatedString, TranslationContext.TranslationSource.FallbackLanguage);
                 }
                 // try string path
-                if (UseStringPathAsFallback)
-                    return new TranslationContext(stringPath, TranslationContext.TranslationSource.StringPath);
+                if (UseKeyAsFallback)
+                    return new TranslationContext(key, key, TranslationContext.TranslationSource.Key);
                 // use empty string
-                return new TranslationContext(string.Empty, TranslationContext.TranslationSource.Empty);
+                return new TranslationContext(key, string.Empty, TranslationContext.TranslationSource.Empty);
             }
         }
         #endregion TranslateWithContext
 
         #region (Static) ContextTr
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the current language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the current language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public static TranslationContext ContextTr(string stringPath, string? defaultText = null) => Instance.TranslateWithContext(stringPath, defaultText);
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public static TranslationContext ContextTr(string key, string? defaultText = null) => Instance.TranslateWithContext(key, defaultText);
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the current language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the current language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 3. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. The wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 4. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public static TranslationContext ContextTr(string stringPath, StringComparison stringComparison, string? defaultText = null) => Instance.TranslateWithContext(stringPath, stringComparison, defaultText);
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public static TranslationContext ContextTr(string key, StringComparison stringComparison, string? defaultText = null) => Instance.TranslateWithContext(key, stringComparison, defaultText);
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public static TranslationContext ContextTr(string stringPath, string? defaultText, string languageName, bool allowFallback = false) => Instance.TranslateWithContext(stringPath, defaultText, languageName, allowFallback);
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public static TranslationContext ContextTr(string key, string? defaultText, string languageName, bool allowFallback = false) => Instance.TranslateWithContext(key, defaultText, languageName, allowFallback);
         /// <summary>
-        /// Gets the translation for the specified <paramref name="stringPath"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
+        /// Gets the translation for the specified <paramref name="key"/> in the specified language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
-        /// <param name="stringPath">The path of the target translated string.</param>
+        /// <param name="key">The path of the target translated string.</param>
         /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
         /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
         /// <param name="languageName">The name of the language to get the translation for.</param>
         /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
         /// <returns>
-        /// A wrapped translation for the specified <paramref name="stringPath"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// A wrapped translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
         /// 1. Wrapped <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="stringPath"/> in the fallback language if found.<br/>
-        /// 4. Wrapped <paramref name="stringPath"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> Wrapped translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. Wrapped <paramref name="key"/> when UseStringPathAsFallback is <see langword="true"/>.<br/>
         /// 5. Wrapped empty string.
         /// </returns>
-        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="stringPath"/> wasn't found.</exception>
-        public static TranslationContext ContextTr(string stringPath, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false) => Instance.TranslateWithContext(stringPath, stringComparison, defaultText, languageName, allowFallback);
+        /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
+        public static TranslationContext ContextTr(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false) => Instance.TranslateWithContext(key, stringComparison, defaultText, languageName, allowFallback);
         #endregion (Static) TranslateWithContext
 
         #endregion Methods

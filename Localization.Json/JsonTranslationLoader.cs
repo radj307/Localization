@@ -32,12 +32,14 @@ namespace Localization.Json
         /// Gets or sets the settings to use when deserializing JSON data.
         /// </summary>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
+        /// <inheritdoc/>
         public string[] SupportedFileExtensions { get; } = new[] { ".json" };
         #endregion Properties
 
         #region Methods
 
         #region Deserialize
+        /// <inheritdoc/>
         public Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
         {
             var root = (JObject?)JsonConvert.DeserializeObject(serializedData);
@@ -86,6 +88,7 @@ namespace Localization.Json
         #endregion Deserialize
 
         #region Serialize
+        /// <inheritdoc/>
         public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations, Formatting formatting)
         {
             var root = new JObject();
@@ -101,6 +104,7 @@ namespace Localization.Json
 
             return JsonConvert.SerializeObject(root, formatting);
         }
+        /// <inheritdoc/>
         public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations)
             => Serialize(translations, Formatting.Indented);
         #endregion Serialize
