@@ -48,24 +48,24 @@ namespace Testing
         }
         static void Main(string[] args)
         {
-            string format = "{0}{1}{2}";
-            string arg0 = "Hello";
-            string arg1 = " ";
-            string arg2 = "World!";
-            DebugProfiler2.WithCount(1000000)
-                .Profile(out var elapsed1, () =>
-                {
-                    string.Format(format, arg0, arg1, arg2);
-                })
-                .Profile(out var elapsed2, () =>
-                {
-                    PartialFormat(format, (0, arg0));
-                })
-                .Profile(out var elapsed3, () =>
-                {
-                    PartialFormat(format, (2, arg2));
-                })
-                ;
+            //string format = "{0}{1}{2}";
+            //string arg0 = "Hello";
+            //string arg1 = " ";
+            //string arg2 = "World!";
+            //DebugProfiler2.WithCount(1000000)
+            //    .Profile(out var elapsed1, () =>
+            //    {
+            //        string.Format(format, arg0, arg1, arg2);
+            //    })
+            //    .Profile(out var elapsed2, () =>
+            //    {
+            //        PartialFormat(format, (0, arg0));
+            //    })
+            //    .Profile(out var elapsed3, () =>
+            //    {
+            //        PartialFormat(format, (2, arg2));
+            //    })
+            //    ;
 
 
             var yamlLoader = Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
