@@ -3,6 +3,7 @@
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Authors>radj307</Authors>
 		<Description>WPF markup extensions and converters for radj307.Localization</Description>
 		<PackageProjectUrl>github.com/radj307/Localization</PackageProjectUrl>
