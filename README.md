@@ -46,8 +46,10 @@ Loc.Tr("This.Key.Does.Not.Exist", defaultText: "Default Text!"); //< "Default Te
 No `xmlns` declaration is required, the `Tr` markup extension is available globally.
 
 ```xaml
+<!--  The text will update automatically when you change the current language.  -->
 <TextBlock Text="{Tr 'MainWindow.Text'}" />
 <TextBlock Text="{Tr 'MainWindow.Text', DefaultText='(Translation Not Provided)'}" />
+<TextBlock Text="{Tr KeyBinding={Binding MyProperty}}" />
 ```
 
 ### Translation Config Files
