@@ -16,6 +16,9 @@
     <Copyright>Copyright © 2023 by $(Authors)</Copyright>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>	
+  <ItemGroup>
     <ProjectReference Include="..\Localization\Localization.csproj" />
-  </ItemGroup>
+  </ItemGroup>	
 </Project>
