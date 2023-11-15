@@ -10,11 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Localization\singlefile-test.loc.json" />
     <None Remove="Localization\test.loc.json" />
+    <None Remove="Localization\test2.loc.yaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Localization\singlefile-test.loc.json" />
     <EmbeddedResource Include="Localization\test.loc.json" />
+    <EmbeddedResource Include="Localization\test2.loc.yaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Localization.Json\Localization.Json.csproj" />
     <ProjectReference Include="..\..\Localization.WPF\Localization.WPF.csproj" />
+    <ProjectReference Include="..\..\Localization.Yaml\Localization.Yaml.csproj" />
     <ProjectReference Include="..\..\Localization\Localization.csproj" />
   </ItemGroup>
 

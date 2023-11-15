@@ -31,16 +31,18 @@ namespace Localization.Json
         /// <summary>
         /// Gets or sets the settings to use when deserializing JSON data.
         /// </summary>
-        public JsonSerializerSettings JsonSerializerSettings { get; set; }
-        /// <inheritdoc/>
-        public string[] SupportedFileExtensions { get; } = new[] { ".json" };
+        public virtual JsonSerializerSettings JsonSerializerSettings { get; set; }
+        /// <summary>
+        /// ".json" files.
+        /// </summary>
+        public string[] SupportedFileExtensions => Util.SupportedFileExtensionStrings;
         #endregion Properties
 
         #region Methods
 
         #region Deserialize
         /// <inheritdoc/>
-        public Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
+        public virtual Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
         {
             var root = (JObject?)JsonConvert.DeserializeObject(serializedData);
             if (root == null) return null;
@@ -89,7 +91,7 @@ namespace Localization.Json
 
         #region Serialize
         /// <inheritdoc/>
-        public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations, Formatting formatting)
+        public virtual string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations, Formatting formatting)
         {
             var root = new JObject();
 
@@ -97,20 +99,19 @@ namespace Localization.Json
             {
                 foreach (var (path, value) in languageDict)
                 {
-                    var node = CreateBranch(root, path.Split(Loc.PathSeparator));
-                    node.Add(languageName, value);
+                    CreateChildBranch(root, path.Split(Loc.PathSeparator)).Add(languageName, value);
                 }
             }
 
             return JsonConvert.SerializeObject(root, formatting);
         }
         /// <inheritdoc/>
-        public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations)
+        public virtual string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations)
             => Serialize(translations, Formatting.Indented);
         #endregion Serialize
 
-        #region (Private) CreateBranch
-        private static JObject CreateBranch(JObject root, string[] path)
+        #region (Private) CreateChildBranch
+        private static JObject CreateChildBranch(JObject root, string[] path)
         {
             JObject node = root;
             for (int i = 0, i_max = path.Length; i < i_max; ++i)
@@ -131,7 +132,7 @@ namespace Localization.Json
             }
             return node;
         }
-        #endregion (Private) CreateBranch
+        #endregion (Private) CreateChildBranch
 
         #endregion Methods
     }

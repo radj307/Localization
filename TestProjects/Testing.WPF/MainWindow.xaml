@@ -9,6 +9,7 @@
     Title="MainWindow"
     Width="800"
     Height="450"
+    DataContext="{Binding RelativeSource={RelativeSource Self}}"
     Loaded="Window_Loaded"
     mc:Ignorable="d">
     <Window.Resources>
@@ -60,6 +61,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
+            <!--  Row 0  -->
             <ComboBox
                 DataContext="{Binding Source={x:Static loc:Loc.Instance}}"
                 DockPanel.Dock="Bottom"
@@ -68,11 +70,16 @@
                 SelectedItem="{Binding CurrentLanguageName}" />
             <ComboBox
                 Grid.Column="1"
-                DataContext="{Binding Source={x:Static loc:Loc.Instance}}"
                 DockPanel.Dock="Bottom"
                 FontSize="20"
-                ItemsSource="{Binding AvailableLanguageNames}"
-                SelectedItem="{Binding FallbackLanguageName}" />
+                SelectedItem="{Binding FallbackLanguageName, Source={x:Static loc:Loc.Instance}}">
+                <ComboBox.ItemsSource>
+                    <CompositeCollection>
+                        <ComboBoxItem Content="(null)" FontStyle="Oblique" />
+                        <CollectionContainer Collection="{Binding AvailableLanguageNames, Source={x:Static loc:Loc.Instance}}" />
+                    </CompositeCollection>
+                </ComboBox.ItemsSource>
+            </ComboBox>
             <Button
                 Grid.Column="2"
                 Padding="5,0"
@@ -83,6 +90,35 @@
                 Padding="5,0"
                 Click="AddLanguages_Click"
                 Content="Add Languages" />
+        </Grid>
+
+        <Grid DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Border
+                Grid.RowSpan="2"
+                Grid.ColumnSpan="2"
+                Background="MistyRose" />
+
+            <TextBox x:Name="KeyBox" Margin="5,3" />
+            <TextBox
+                x:Name="DefaultTextBox"
+                Grid.Column="1"
+                Margin="5,3" />
+
+            <TextBlock
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Margin="5,3"
+                Text="{Tr {Binding Text, ElementName=KeyBox},
+                          {Binding Text, ElementName=DefaultTextBox},
+                          StringComparison=OrdinalIgnoreCase}" />
         </Grid>
 
         <Grid>

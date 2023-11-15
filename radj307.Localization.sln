@@ -21,6 +21,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Testing.WPF", "TestProjects
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github", "github", "{937A141F-13AF-400E-A445-7495E94AC78B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{C36FECA0-EFC3-41D3-8D28-0FE9CFC9F67E}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\UpdateNugetPackages.yaml = .github\workflows\UpdateNugetPackages.yaml
+		.github\workflows\UpdateVersion.yaml = .github\workflows\UpdateVersion.yaml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localization.Xml", "Localization.Xml\Localization.Xml.csproj", "{10A8A954-B1A1-4DF0-815D-8090D6E1C2E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +63,10 @@ Global
 		{D338DBD1-3C66-4B1F-A463-AF5DCE5D8294}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D338DBD1-3C66-4B1F-A463-AF5DCE5D8294}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D338DBD1-3C66-4B1F-A463-AF5DCE5D8294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10A8A954-B1A1-4DF0-815D-8090D6E1C2E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10A8A954-B1A1-4DF0-815D-8090D6E1C2E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10A8A954-B1A1-4DF0-815D-8090D6E1C2E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10A8A954-B1A1-4DF0-815D-8090D6E1C2E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +74,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{70838915-664B-4C22-9344-309677C3BC39} = {D80EBAEC-7BCB-493C-A8E5-90DE152B7EE4}
 		{D338DBD1-3C66-4B1F-A463-AF5DCE5D8294} = {D80EBAEC-7BCB-493C-A8E5-90DE152B7EE4}
+		{C36FECA0-EFC3-41D3-8D28-0FE9CFC9F67E} = {937A141F-13AF-400E-A445-7495E94AC78B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {25273623-B1E5-45F6-A782-E56C58CA7F96}

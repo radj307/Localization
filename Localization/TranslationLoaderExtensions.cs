@@ -1,4 +1,5 @@
 ﻿using Localization.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,11 +15,50 @@ namespace Localization
 
         #region Serialize
         /// <inheritdoc cref="ITranslationLoader.Serialize(IReadOnlyDictionary{string, IReadOnlyDictionary{string, string}})"/>
-        public static string Serialize(this ITranslationLoader loader, Dictionary<string, Dictionary<string, string>> languageDictionaries)
+        public static string Serialize(this ITranslationLoader loader, IReadOnlyDictionary<string, Dictionary<string, string>> languageDictionaries)
         {
             return loader.Serialize(languageDictionaries.AsReadOnlyDictionary());
         }
         #endregion Serialize
+
+        #region ConflictsWith
+        /// <summary>
+        /// Checks if the <see cref="ITranslationLoader"/> instance conflicts with the specified <paramref name="otherLoader"/> by comparing their supported file extensions.
+        /// </summary>
+        /// <remarks>
+        /// A translation loader is conflicting when it doesn't support any unique file extensions.<br/>
+        /// For example, a loader than supports ".json" extensions will conflict with a loader that supports ".json" &amp; ".yaml" extensions, but not the other way around unless <paramref name="allowPartialConflicts"/> is <see langword="false"/>.
+        /// </remarks>
+        /// <param name="loader">An <see cref="ITranslationLoader"/> instance.</param>
+        /// <param name="otherLoader">Another <see cref="ITranslationLoader"/> instance to check for conflicts with.</param>
+        /// <param name="allowPartialConflicts">When <see langword="false"/>, any matching supported extensions will be considered conflicting; otherwise, when <see langword="true"/> all extensions must match those supported by the <paramref name="otherLoader"/>.</param>
+        /// <returns><see langword="true"/> when <paramref name="loader"/> conflicts with the <paramref name="otherLoader"/>; otherwise, <see langword="false"/>.</returns>
+        public static bool ConflictsWith(this ITranslationLoader loader, ITranslationLoader otherLoader, bool allowPartialConflicts = true)
+        {
+            int conflictCount = 0;
+            int i_max = loader.SupportedFileExtensions.Length;
+            for (int i = 0; i < i_max; ++i)
+            {
+                // get ONLY the extension
+                var ext = loader.SupportedFileExtensions[i].TrimStart('.');
+                if (ext.Contains('.')) ext = Path.GetExtension(ext);
+
+                for (int j = 0, j_max = otherLoader.SupportedFileExtensions.Length; j < j_max; ++j)
+                {
+                    // get ONLY the extension
+                    var otherExt = otherLoader.SupportedFileExtensions[j].TrimStart('.');
+                    if (otherExt.Contains('.')) otherExt = Path.GetExtension(otherExt);
+
+                    if (ext.Equals(otherExt, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!allowPartialConflicts) return true;
+                        ++conflictCount;
+                    }
+                }
+            }
+            return conflictCount == i_max;
+        }
+        #endregion ConflictsWith
 
         #region CanLoadFile
         /// <summary>
@@ -33,7 +73,7 @@ namespace Localization
             var extensionPrefixStart = name.IndexOf(Loc.ExtensionPrefix);
             if (extensionPrefixStart == -1)
                 return false;
-            
+
             var extensionPrefixEnd = extensionPrefixStart + Loc.ExtensionPrefix.Length;
             if (extensionPrefixEnd >= name.Length)
                 return loader.SupportedFileExtensions.Contains(string.Empty);

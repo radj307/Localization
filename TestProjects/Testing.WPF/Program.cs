@@ -1,5 +1,6 @@
 ﻿using Localization;
 using Localization.Json;
+using Localization.Yaml;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -13,10 +14,20 @@ namespace Testing.WPF
         [STAThread]
         public static int Main(string[] args)
         {
-            Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
+            //JsonSingleTranslationLoader jstl = new();
+            //var dict = jstl.Deserialize(ResourceHelper.GetManifestResourceString(ResourceHelper.ResourceNames.First(name => name.EndsWith("singlefile-test.loc.json"))));
+            //var serial = jstl.Serialize(dict);
 
-            Loc.Instance.LoadFromString(new JsonTranslationLoader(), ResourceHelper.GetManifestResourceString(ResourceHelper.ResourceNames.First(name => name.EndsWith("test.loc.json")))!);
-            Loc.Instance.CurrentLanguageName = "lang1";
+            Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
+            Loc.Instance.AddTranslationLoader<JsonSingleTranslationLoader>();
+
+            foreach (var resource in ResourceHelper.ResourceNames)
+            {
+                var loader = Loc.Instance.GetTranslationLoaderForFile(resource);
+                if (loader == null) continue;
+                Loc.Instance.LoadFromString(loader, ResourceHelper.GetManifestResourceString(resource));
+            }
+            Loc.Instance.CurrentLanguageName = "English";
             Loc.Instance.FallbackLanguageName = "lang4";
 
             var app = new App();

@@ -1,11 +1,74 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Testing
 {
 #if DEBUG
+    public static class DebugHelpers
+    {
+        #region Fields
+        public static readonly string[] Words = { // random words from chatgpt:
+            "apple", "banana", "cherry", "date", "elder", "fig", "grape", "honey", "ivy", "jam",
+            "kite", "lemon", "melon", "nutmeg", "olive", "peach", "quince", "raisin", "spice", "thyme",
+            "umbra", "vanilla", "water", "xanthic", "yellow", "zest", "almond", "breeze", "cocoa", "daisy",
+            "echo", "fudge", "glow", "hazel", "iris", "jazz", "karma", "lily", "mango", "nova",
+            "opal", "piano", "quasar", "raven", "silk", "truffle", "ultra", "velvet", "whisk", "xerox",
+            "yoga", "zebra", "azure", "blitz", "cider", "dynamo", "ember", "flint", "glimpse", "humble",
+            "ignite", "jubilee", "kiwi", "lush", "mirth", "noble", "oasis", "pounce", "quiver", "riddle",
+            "serene", "twirl", "uplift", "vortex", "waltz", "xylophone", "yearn", "zephyr", "ambush", "bewitch",
+            "cascade", "dazzle", "effervesce", "fable", "glisten", "harmony", "infinite", "jubilant", "kaleidoscope", "luminous",
+            "mesmerize", "nirvana", "oceanic", "panorama", "quintessence", "radiant", "serendipity", "tranquil", "utopia", "vivid",
+            "whimsical", "xanadu", "yonder", "zenith", "adorn", "bliss", "courage", "diligent", "eloquent", "felicity",
+            "gracious", "harmony", "innocent", "jubilant", "keen", "lively", "magnificent", "noble", "optimistic", "peaceful",
+            "quaint", "resilient", "serene", "triumphant", "uplifting", "vibrant", "wholesome", "xenial", "youthful", "zealous"
+        };
+        #endregion Fields
+
+        #region Next
+        /// <summary>
+        /// Inclusive version of the <see cref="Random.Next"/> method.
+        /// </summary>
+        /// <param name="min">The minimum value that can be returned.</param>
+        /// <param name="max">The maximum value that can be returned.</param>
+        /// <returns>A random value from <paramref name="min"/> up to and including <paramref name="max"/>.</returns>
+        public static int Next(int min, int max)
+            => Random.Shared.Next(min, max + 1);
+        /// <summary>
+        /// Inclusive version of the <see cref="Random.Next"/> method.
+        /// </summary>
+        /// <param name="max">The maximum value that can be returned.</param>
+        /// <returns>A random value from 0 up to and including <paramref name="max"/>.</returns>
+        public static int Next(int max)
+            => Random.Shared.Next(max + 1);
+        #endregion Next
+
+        #region NextBool
+        public static bool NextBool()
+            => Next(0, 1) == 0;
+        #endregion NextBool
+
+        #region NextWord
+        public static string NextWord()
+            => Words[Next(0, Words.Length - 1)];
+        #endregion NextWord
+
+        #region NextWords
+        public static string[] NextWords(int min, int max)
+        {
+            int len = Next(min, max);
+            string[] arr = new string[len];
+
+            for (int i = 0; i < len; ++i)
+            {
+                arr[i] = NextWord();
+            }
+
+            return arr;
+        }
+        public static string[] NextWords(int max)
+            => NextWords(0, max);
+        #endregion NextWords
+    }
     /// <summary>
     /// Helper class for comparing the approximate speeds of code snippets.
     /// </summary>
@@ -13,7 +76,6 @@ namespace Testing
     {
         #region Fields
         private readonly Stopwatch _stopwatch = new();
-        private readonly Random _random = Random.Shared;
         #endregion Fields
 
         #region Methods
@@ -215,29 +277,6 @@ namespace Testing
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<Pending>")]
         public int IndexOfFastest<T>(params T[] values) where T : IComparable<T> => IndexOfSmallest(values);
         #endregion IndexOfFastestValue
-
-        #region Next
-        /// <summary>
-        /// Inclusive version of the <see cref="Random.Next"/> method.
-        /// </summary>
-        /// <param name="min">The minimum value that can be returned.</param>
-        /// <param name="max">The maximum value that can be returned.</param>
-        /// <returns>A random value from <paramref name="min"/> up to and including <paramref name="max"/>.</returns>
-        public int Next(int min, int max)
-            => _random.Next(min, max + 1);
-        /// <summary>
-        /// Inclusive version of the <see cref="Random.Next"/> method.
-        /// </summary>
-        /// <param name="max">The maximum value that can be returned.</param>
-        /// <returns>A random value from 0 up to and including <paramref name="max"/>.</returns>
-        public int Next(int max)
-            => _random.Next(max + 1);
-        #endregion Next
-
-        #region NextBool
-        public bool NextBool()
-            => Next(0, 1) == 0;
-        #endregion NextBool
 
         #endregion Methods
     }

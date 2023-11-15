@@ -14,7 +14,7 @@ namespace Localization
     /// Each key contains the path to the corresponding value, and values contain the translated string.
     /// </remarks>
     [DoNotNotify]
-    public sealed class LanguageDictionary :
+    public sealed class TranslationDictionary :
         ICollection<KeyValuePair<string, string>>, IDictionary<string, string>,
         IReadOnlyObservableConcurrentDictionary<string, string>,
         IReadOnlyDictionary<string, string>,
@@ -22,22 +22,22 @@ namespace Localization
     {
         #region Constructors
         /// <summary>
-        /// Creates a new empty <see cref="LanguageDictionary"/> instance.
+        /// Creates a new empty <see cref="TranslationDictionary"/> instance.
         /// </summary>
-        public LanguageDictionary() : this(new ObservableConcurrentDictionary<string, string>()) { }
+        public TranslationDictionary() : this(new ObservableConcurrentDictionary<string, string>()) { }
         /// <summary>
-        /// Creates a new <see cref="LanguageDictionary"/> instance with the specified <paramref name="translations"/>.
+        /// Creates a new <see cref="TranslationDictionary"/> instance with the specified <paramref name="translations"/>.
         /// </summary>
         /// <param name="translations">A dictionary containing translations.</param>
-        public LanguageDictionary(ObservableConcurrentDictionary<string, string> translations)
+        public TranslationDictionary(ObservableConcurrentDictionary<string, string> translations)
         {
             _translationStrings = translations;
         }
         /// <summary>
-        /// Creates a new <see cref="LanguageDictionary"/> instance with the specified <paramref name="translations"/>.
+        /// Creates a new <see cref="TranslationDictionary"/> instance with the specified <paramref name="translations"/>.
         /// </summary>
         /// <param name="translations">A dictionary containing translations.</param>
-        public LanguageDictionary(IReadOnlyDictionary<string, string> translations)
+        public TranslationDictionary(IReadOnlyDictionary<string, string> translations)
         {
             _translationStrings = new ObservableConcurrentDictionary<string, string>();
             Merge(translations);

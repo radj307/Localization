@@ -69,9 +69,48 @@ namespace Localization
         /// <inheritdoc cref="TryGetFirstValue{TValue}(IReadOnlyDictionary{string, TValue}, IEnumerable{string}, out string, out TValue)"/>
         public static bool TryGetFirstValue<TValue>(this IReadOnlyDictionary<string, TValue> dictionary, IEnumerable<string> keys, out TValue value)
             => dictionary.TryGetFirstValue(keys, out _, out value);
-        public static IReadOnlyDictionary<TKey, IReadOnlyDictionary<TSubKey, TValue>> AsReadOnlyDictionary<TKey, TSubKey, TValue>(this Dictionary<TKey, Dictionary<TSubKey, TValue>> dictionary)
+        public static IReadOnlyDictionary<TKey, IReadOnlyDictionary<TSubKey, TValue>> AsReadOnlyDictionary<TKey, TSubKey, TValue>(this IReadOnlyDictionary<TKey, Dictionary<TSubKey, TValue>> dictionary)
         {
             return (IReadOnlyDictionary<TKey, IReadOnlyDictionary<TSubKey, TValue>>)dictionary.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyDictionary<TKey, TValue>)kvp.Value);
+        }
+        /// <summary>
+        /// Gets the value of the specified <paramref name="key"/>, or creates it if it doesn't exist.
+        /// </summary>
+        /// <typeparam name="TKey">The type of key in the dictionary.</typeparam>
+        /// <typeparam name="TValue">The type of value in the dictionary. It must be default-constructible to use this overload; otherwise,<br/>use <see cref="GetOrCreateValue{TKey, TValue}(Dictionary{TKey, TValue}, TKey, Func{TValue})"/>.</typeparam>
+        /// <param name="dictionary">The dictionary instance.</param>
+        /// <param name="key">The key of the element to get/add.</param>
+        /// <returns>The value of the element.</returns>
+        public static TValue GetOrCreateValue<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key) where TValue : new()
+        {
+            if (dictionary.TryGetValue(key, out var existingValue))
+                return existingValue;
+            else
+            {
+                var value = new TValue();
+                dictionary.Add(key, value);
+                return value;
+            }
+        }
+        /// <summary>
+        /// Gets the value of the specified <paramref name="key"/>, or creates it if it doesn't exist.
+        /// </summary>
+        /// <typeparam name="TKey">The type of key in the dictionary.</typeparam>
+        /// <typeparam name="TValue">The type of value in the dictionary.</typeparam>
+        /// <param name="dictionary">The dictionary instance.</param>
+        /// <param name="key">The key of the element to get/add.</param>
+        /// <param name="valueFactory">A function that returns a new instance of type <typeparamref name="TValue"/>.</param>
+        /// <returns>The value of the element.</returns>
+        public static TValue GetOrCreateValue<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, Func<TValue> valueFactory)
+        {
+            if (dictionary.TryGetValue(key, out var existingValue))
+                return existingValue;
+            else
+            {
+                var value = valueFactory();
+                dictionary.Add(key, value);
+                return value;
+            }
         }
     }
 }

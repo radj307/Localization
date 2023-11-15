@@ -2,12 +2,12 @@
   "MainWindow": {
     "TextBlock": {
       "lang1": "This is the content of a textblock",
-      "lang2": "aj;klfdasl;kjafsdjlk;sfda",
       "lang3": "we all live in a yellow submarine",
       "lang4": "Мы все живем в желтой подводной лодке"
     },
     "block2": {
       "lang1": "I'm fine.",
+      "lang2": "I'm GREAT!'",
       "lang4": "ПОЖАЛУЙСТА, ПОМОГИ МНЕ, О, МОЙ БЛЯДЬ,"
     }
   }

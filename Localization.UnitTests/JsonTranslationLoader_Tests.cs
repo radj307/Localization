@@ -71,7 +71,7 @@ namespace Localization.UnitTests
         [Fact]
         public void Serialize_NoThrow()
         {
-            Loc.Instance.AddLanguage("en", new Dictionary<string, string>
+            Loc.Instance.AddTranslations("en", new Dictionary<string, string>
             {
                 {  "A.B.C.D", "!!!" },
                 {  "Root.Sub1.Sub2.Content1", "asdf" },

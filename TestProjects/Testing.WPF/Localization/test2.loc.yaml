@@ -1,0 +1,12 @@
+﻿MainWindow:
+  TextBlock:
+    yamlLang1: "Doing the thing requires patience."
+
+  block2:
+    yamlLang1: |
+               Multi
+               Line
+               String
+    lang3: >
+           Folded
+           String

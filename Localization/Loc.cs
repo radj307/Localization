@@ -27,13 +27,13 @@ namespace Localization
         [Obsolete("Creating a new Loc instance is not recommended. Use the static Loc.Instance property instead.", error: false)]
         public Loc() => _currentLanguageName = string.Empty;
         /// <summary>
-        /// Creates a new <see cref="Loc"/> instance with the specified parameters.
+        /// Creates a new <see cref="Loc"/> instance with the specified <paramref name="languages"/> and <paramref name="currentLanguageName"/>.
         /// </summary>
         /// <param name="languages">Language dictionary.</param>
         /// <param name="currentLanguageName">The current language name.</param>
-        public Loc(IReadOnlyObservableConcurrentDictionary<string, LanguageDictionary> languages, string currentLanguageName)
+        public Loc(IReadOnlyObservableConcurrentDictionary<string, TranslationDictionary> languages, string currentLanguageName)
         {
-            _languages = new ObservableConcurrentDictionary<string, LanguageDictionary>(languages);
+            _languages = new ObservableConcurrentDictionary<string, TranslationDictionary>(languages);
             _currentLanguageName = currentLanguageName;
         }
         #endregion Constructor
@@ -59,8 +59,8 @@ namespace Localization
         /// <summary>
         /// Gets the language dictionary that contains all loaded translations.
         /// </summary>
-        public IReadOnlyObservableConcurrentDictionary<string, LanguageDictionary> Languages => _languages;
-        private readonly ObservableConcurrentDictionary<string, LanguageDictionary> _languages = new ObservableConcurrentDictionary<string, LanguageDictionary>();
+        public IReadOnlyObservableConcurrentDictionary<string, TranslationDictionary> Languages => _languages;
+        private readonly ObservableConcurrentDictionary<string, TranslationDictionary> _languages = new ObservableConcurrentDictionary<string, TranslationDictionary>();
         /// <summary>
         /// Gets or sets the name of the current default language to get translations from when no language is explicitly provided.
         /// </summary>
@@ -86,9 +86,9 @@ namespace Localization
         }
         private string _currentLanguageName;
         /// <summary>
-        /// Gets the <see cref="LanguageDictionary"/> associated with the CurrentLanguageName.
+        /// Gets the <see cref="TranslationDictionary"/> associated with the CurrentLanguageName.
         /// </summary>
-        public LanguageDictionary? CurrentLanguageDictionary { get; private set; }
+        public TranslationDictionary? CurrentLanguageDictionary { get; private set; }
         /// <summary>
         /// Gets or sets the name of a language to use as a fallback when a translation is missing and no default text was provided.
         /// </summary>
@@ -101,19 +101,27 @@ namespace Localization
                     return;
 
                 var previousValue = _fallbackLanguageName;
-                _fallbackLanguageName = value;
-                FallbackLanguageDictionary = _fallbackLanguageName != null && Languages.TryGetValue(_fallbackLanguageName, out var dict)
-                    ? dict
-                    : null;
+                if (value is string s)
+                {
+                    _fallbackLanguageName = s;
+                    FallbackLanguageDictionary = _fallbackLanguageName != null && Languages.TryGetValue(_fallbackLanguageName, out var dict)
+                        ? dict
+                        : null;
+                }
+                else
+                {
+                    _fallbackLanguageName = null;
+                    FallbackLanguageDictionary = null;
+                }
                 NotifyPropertyChanged();
                 NotifyFallbackLanguageChanged(previousValue, _fallbackLanguageName);
             }
         }
         private string? _fallbackLanguageName = null;
         /// <summary>
-        /// Gets the <see cref="LanguageDictionary"/> associated with the FallbackLanguageName.
+        /// Gets the <see cref="TranslationDictionary"/> associated with the FallbackLanguageName.
         /// </summary>
-        public LanguageDictionary? FallbackLanguageDictionary { get; private set; }
+        public TranslationDictionary? FallbackLanguageDictionary { get; private set; }
         /// <summary>
         /// Gets the names of all currently loaded languages.
         /// </summary>
@@ -215,15 +223,15 @@ namespace Localization
         }
         #endregion ClearLanguages
 
-        #region AddLanguage
+        #region AddTranslations
         /// <summary>
-        /// Merges the <paramref name="translations"/> into the language dictionary with the specified <paramref name="languageName"/>.
+        /// Adds <paramref name="translations"/> to the specified <paramref name="languageName"/>.
         /// </summary>
         /// <param name="languageName">The name of the language to add.</param>
         /// <param name="translations">The language dictionary to merge into the specified <paramref name="languageName"/>.</param>
         /// <param name="overwriteExisting">When <see langword="true"/> and a translated string already exists, it is replaced; otherwise when <see langword="false"/>, only new strings are added.</param>
-        /// <returns>The merged <see cref="LanguageDictionary"/>.</returns>
-        public LanguageDictionary AddLanguage(string languageName, IReadOnlyDictionary<string, string> translations, bool overwriteExisting = true)
+        /// <returns>The merged <see cref="TranslationDictionary"/>.</returns>
+        public TranslationDictionary AddTranslations(string languageName, IReadOnlyDictionary<string, string> translations, bool overwriteExisting = true)
         {
             if (Languages.TryGetValue(languageName, out var existing))
             {
@@ -232,13 +240,13 @@ namespace Localization
             }
             else
             {
-                _languages.Add(languageName, new LanguageDictionary(translations));
+                _languages.Add(languageName, new TranslationDictionary(translations));
                 _availableLanguageNames.Add(languageName);
                 return Languages[languageName];
             }
         }
-        /// <inheritdoc cref="AddLanguage(string, IReadOnlyDictionary{string, string}, bool)"/>
-        public LanguageDictionary AddLanguage(string languageName, LanguageDictionary translations, bool overwriteExisting = true)
+        /// <inheritdoc cref="AddTranslations(string, IReadOnlyDictionary{string, string}, bool)"/>
+        public TranslationDictionary AddTranslations(string languageName, TranslationDictionary translations, bool overwriteExisting = true)
         {
             if (Languages.TryGetValue(languageName, out var existing))
             {
@@ -252,18 +260,33 @@ namespace Localization
                 return Languages[languageName];
             }
         }
-        #endregion AddLanguage
+        #endregion AddTranslations
 
         #region ReplaceLanguage
         /// <summary>
-        /// Replaces all translations for the specified <paramref name="languageName"/>.
+        /// Replaces the translations for the specified <paramref name="languageName"/> with <paramref name="newTranslations"/>.
         /// </summary>
         /// <param name="languageName">The name of the language to replace.</param>
-        /// <param name="newTranslations">The new translations for the language.</param>
-        public void ReplaceLanguage(string languageName, LanguageDictionary newTranslations)
+        /// <param name="newTranslations">The replacement translations for the language.</param>
+        /// <returns>The translations for <paramref name="languageName"/> that were replaced.</returns>
+        public TranslationDictionary? ReplaceLanguage(string languageName, TranslationDictionary newTranslations)
         {
-            RemoveLanguage(languageName);
-            AddLanguage(languageName, newTranslations);
+            var previousTranslations = TakeLanguage(languageName);
+            AddTranslations(languageName, newTranslations);
+            return previousTranslations;
+        }
+        /// <summary>
+        /// Replaces the specified <paramref name="languageName"/> with <paramref name="newTranslations"/> and a <paramref name="newLanguageName"/>.
+        /// </summary>
+        /// <param name="languageName">The name of the language to replace.</param>
+        /// <param name="newTranslations">The translations for the replacement language.</param>
+        /// <param name="newLanguageName">The name of the replacement language.</param>
+        /// <returns>The translations for <paramref name="languageName"/> that were replaced.</returns>
+        public TranslationDictionary? ReplaceLanguage(string languageName, TranslationDictionary newTranslations, string newLanguageName)
+        {
+            var previousTranslations = TakeLanguage(languageName);
+            AddTranslations(newLanguageName, newTranslations);
+            return previousTranslations;
         }
         #endregion ReplaceLanguage
 
@@ -271,10 +294,9 @@ namespace Localization
         /// <summary>
         /// Removes the translations for the specified <paramref name="languageName"/>.
         /// </summary>
-        /// <param name="languageName"></param>
-        /// <returns></returns>
-        public bool RemoveLanguage(string languageName)
-            => _languages.Remove(languageName);
+        /// <param name="languageName">The name of the language to remove.</param>
+        /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveLanguage(string languageName) => _languages.Remove(languageName);
         #endregion RemoveLanguage
 
         #region TakeLanguage
@@ -282,8 +304,8 @@ namespace Localization
         /// Gets and removes the translations for the specified <paramref name="languageName"/>.
         /// </summary>
         /// <param name="languageName">The name of the language to take.</param>
-        /// <returns>The <see cref="LanguageDictionary"/> for the specified <paramref name="languageName"/> if found; otherwise, <see langword="null"/>.</returns>
-        public LanguageDictionary? TakeLanguage(string languageName)
+        /// <returns>The <see cref="TranslationDictionary"/> for the specified <paramref name="languageName"/> if found; otherwise, <see langword="null"/>.</returns>
+        public TranslationDictionary? TakeLanguage(string languageName)
         {
             if (Languages.TryGetValue(languageName, out var translations))
             {
@@ -294,68 +316,74 @@ namespace Localization
         }
         #endregion TakeLanguage
 
-        #region ChangeLanguageName
+        #region RenameLanguage
         /// <summary>
-        /// Changes the specified <paramref name="languageName"/> to <paramref name="newName"/>.
+        /// Renames the specified <paramref name="languageName"/> to <paramref name="newName"/>.
         /// </summary>
         /// <param name="languageName">The name of the language to change the name of.</param>
         /// <param name="newName">The new name to give to the language.</param>
-        /// <returns><see langword="true"/> when the name was successfully changed; otherwise, <see langword="false"/>.</returns>
-        public bool ChangeLanguageName(string languageName, string newName)
+        /// <returns><see langword="true"/> when the language was successfully renamed; otherwise, <see langword="false"/>.</returns>
+        public bool RenameLanguage(string languageName, string newName)
         {
-            if (TakeLanguage(languageName) is LanguageDictionary translations)
+            if (TakeLanguage(languageName) is TranslationDictionary translations)
             {
-                AddLanguage(newName, (IReadOnlyDictionary<string, string>)translations);
+                AddTranslations(newName, (IReadOnlyDictionary<string, string>)translations);
                 return true;
             }
             return false;
         }
-        #endregion ChangeLanguageName
+        #endregion RenameLanguage
 
-        #region AddLanguageDictionaries
+        #region AddLanguage
         /// <summary>
-        /// Merges the specified <paramref name="languages"/> into the language dictionary.
+        /// Adds the specified <paramref name="languages"/> to this instance.
         /// </summary>
         /// <param name="languages">Dictionary containing any number of languages.</param>
         /// <param name="overwriteExisting">When <see langword="true"/> and a translated string already exists, it is replaced; otherwise when <see langword="false"/>, only new strings are added.</param>
-        public void AddLanguageDictionaries(IReadOnlyDictionary<string, LanguageDictionary> languages, bool overwriteExisting = true)
+        public void AddLanguage(IReadOnlyDictionary<string, TranslationDictionary> languages, bool overwriteExisting = true)
         {
             foreach (var (languageName, languageDict) in languages)
             {
-                AddLanguage(languageName, languageDict, overwriteExisting);
+                AddTranslations(languageName, languageDict, overwriteExisting);
             }
         }
         /// <summary>
-        /// Merges the specified <paramref name="languages"/> into the language dictionary.
+        /// Adds the specified <paramref name="languages"/> to this instance.
         /// </summary>
         /// <param name="languages">Dictionary containing any number of languages.</param>
         /// <param name="overwriteExisting">When <see langword="true"/> and a translated string already exists, it is replaced; otherwise when <see langword="false"/>, only new strings are added.</param>
-        public void AddLanguageDictionaries(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languages, bool overwriteExisting = true)
+        public void AddLanguage(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languages, bool overwriteExisting = true)
         {
             foreach (var (languageName, languageDict) in languages)
             {
-                AddLanguage(languageName, languageDict, overwriteExisting);
+                AddTranslations(languageName, languageDict, overwriteExisting);
             }
         }
-        /// <inheritdoc cref="AddLanguageDictionaries(IReadOnlyDictionary{string, IReadOnlyDictionary{string, string}}, bool)"/>
-        public void AddLanguageDictionaries(Dictionary<string, Dictionary<string, string>> languages, bool overwriteExisting = true)
+        /// <inheritdoc cref="AddLanguage(IReadOnlyDictionary{string, IReadOnlyDictionary{string, string}}, bool)"/>
+        public void AddLanguage(Dictionary<string, Dictionary<string, string>> languages, bool overwriteExisting = true)
         {
             foreach (var (languageName, languageDict) in languages)
             {
-                AddLanguage(languageName, languageDict, overwriteExisting);
+                AddTranslations(languageName, languageDict, overwriteExisting);
             }
         }
-        #endregion AddLanguageDictionaries
+        #endregion AddLanguage
 
         #region AddTranslationLoader
         /// <summary>
         /// Adds the specified <paramref name="loader"/> to the list of TranslationLoaders, if it isn't present already.
         /// </summary>
+        /// <remarks>
+        /// Returns <see langword="false"/> when the specified <paramref name="loader"/> conflicts with any current loaders.
+        /// </remarks>
         /// <param name="loader">The <see cref="ITranslationLoader"/> instance to add.</param>
         /// <returns><see langword="true"/> if the <paramref name="loader"/> was successfully added to the list, or was already present; otherwise, <see langword="false"/>.</returns>
-        public bool AddTranslationLoader(ITranslationLoader loader)
+        public bool AddTranslationLoader(ITranslationLoader loader, bool allowConflicting = false)
         {
             if (TranslationLoaders.Contains(loader)) return true;
+
+            if (!allowConflicting && TranslationLoaders.Any(tl => loader.ConflictsWith(tl)))
+                return false;
 
             TranslationLoaders.Add(loader);
             return true;
@@ -365,7 +393,7 @@ namespace Localization
         /// </summary>
         /// <typeparam name="TLoader">A type that implements <see cref="ITranslationLoader"/> and is default-constructible.</typeparam>
         /// <returns>A pre-existing <typeparamref name="TLoader"/> instance when one was found; otherwise, a new <typeparamref name="TLoader"/> instance.</returns>
-        public TLoader AddTranslationLoader<TLoader>() where TLoader : ITranslationLoader, new()
+        public TLoader AddTranslationLoader<TLoader>(bool allowConflicting = false) where TLoader : ITranslationLoader, new()
         {
             if (TranslationLoaders.Count > 0)
             {
@@ -430,24 +458,56 @@ namespace Localization
         /// <returns>The <see cref="ITranslationLoader"/> instance if found; otherwise, <see langword="null"/>.</returns>
         public T? GetTranslationLoader<T>() where T : class, ITranslationLoader
             => (T?)GetTranslationLoader(typeof(T))!;
+        public T GetOrCreateTranslationLoader<T>() where T : class, ITranslationLoader, new()
+        {
+            if (GetTranslationLoader(typeof(T)) is T existingLoader)
+                return existingLoader;
+            else return AddTranslationLoader<T>();
+        }
         #endregion GetTranslationLoader
 
         #region LoadFromString
         /// <summary>
         /// Loads translations from the specified <paramref name="serializedData"/>.
         /// </summary>
-        /// <param name="loader">The <see cref="ITranslationLoader"/> instance to use for deserializing the string. This must be specified since it can't be automatically determined from a file extension.</param>
+        /// <param name="loader">The <see cref="ITranslationLoader"/> instance to use for deserializing the string.</param>
         /// <param name="serializedData">A string containing the serialized contents of a translation config file.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
         public bool LoadFromString(ITranslationLoader loader, string? serializedData)
         {
+            if (loader == null)
+                throw new ArgumentNullException(nameof(loader));
             if (string.IsNullOrEmpty(serializedData))
                 return false;
 
             var dict = loader.Deserialize(serializedData);
             if (dict == null) return false;
-            AddLanguageDictionaries(dict);
+            AddLanguage(dict);
             return true;
+        }
+        /// <inheritdoc cref="LoadFromString(ITranslationLoader, string?)"/>
+        public bool LoadFromString(string? serializedData, ITranslationLoader loader)
+            => LoadFromString(loader, serializedData);
+        /// <summary>
+        /// Loads translations from the specified <paramref name="serializedData"/>.
+        /// </summary>
+        /// <param name="serializedData">A string containing the serialized contents of a translation config file.</param>
+        /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
+        [Obsolete("This method is slow, you should use LoadFromString(ITranslationLoader, string?) instead.")]
+        public bool LoadFromString(string? serializedData)
+        {
+            foreach (var loader in TranslationLoaders)
+            {
+                try
+                {
+                    if (LoadFromString(loader, serializedData))
+                    {
+                        return true;
+                    }
+                }
+                catch { }
+            }
+            return false;
         }
         #endregion LoadFromString
 
@@ -466,7 +526,7 @@ namespace Localization
             if (GetTranslationLoaderForFile(filePath) is ITranslationLoader loader
                 && loader.TryLoadFromFile(filePath, out var dict))
             {
-                AddLanguageDictionaries(dict);
+                AddLanguage(dict);
                 return true;
             }
             else return false;
@@ -622,7 +682,7 @@ namespace Localization
         /// <param name="fileNameSelector">A selector method that chooses a filename when given a language name.</param>
         /// <returns>A list of the full paths of all successfully-created translation config files.</returns>
         /// <exception cref="ArgumentNullException">The specified <paramref name="directoryPath"/> or <paramref name="loader"/> was <see langword="null"/>.</exception>
-        public IEnumerable<string> SaveToDirectory(string directoryPath, ITranslationLoader loader, Func<string, LanguageDictionary, string> fileNameSelector)
+        public IEnumerable<string> SaveToDirectory(string directoryPath, ITranslationLoader loader, Func<string, TranslationDictionary, string> fileNameSelector)
         {
             if (directoryPath == null)
                 throw new ArgumentNullException(nameof(directoryPath));

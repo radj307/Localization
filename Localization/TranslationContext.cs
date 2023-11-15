@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Localization
 {
     /// <summary>
-    /// A wrapper for a translated string that includes contextual information about the translation source.
+    /// A wrapper for a translated string that includes contextual information about the source of the translation.
     /// </summary>
     [DebuggerDisplay("Text = {Text}, Source = {Source}, LanguageName = {LanguageName}")]
     public readonly struct TranslationContext

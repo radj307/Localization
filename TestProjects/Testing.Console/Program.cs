@@ -1,5 +1,7 @@
 ﻿using Localization;
+using Localization.Interfaces;
 using Localization.Json;
+using Localization.Xml;
 using Localization.Yaml;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -38,52 +40,33 @@ namespace Testing
                 var argIndex = int.Parse(m.Groups[1].Value);
 
                 if (TryGetArgForIndex(argIndex, out var arg))
-                {
                     args.Add(string.Format(m.Value.Replace(m.Groups[1].Value, "0"), arg));
-                }
                 else args.Add(m.Value);
             }
 
             return string.Format(format, args.ToArray());
         }
+        class TESTLOADER : ITranslationLoader
+        {
+            public string[] SupportedFileExtensions { get; } = new string[] { ".xml", ".json", ".yml", ".yaml" };
+
+            public Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData) => throw new NotImplementedException();
+            public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries) => throw new NotImplementedException();
+        }
         static void Main(string[] args)
         {
-            //string format = "{0}{1}{2}";
-            //string arg0 = "Hello";
-            //string arg1 = " ";
-            //string arg2 = "World!";
-            //DebugProfiler2.WithCount(1000000)
-            //    .Profile(out var elapsed1, () =>
-            //    {
-            //        string.Format(format, arg0, arg1, arg2);
-            //    })
-            //    .Profile(out var elapsed2, () =>
-            //    {
-            //        PartialFormat(format, (0, arg0));
-            //    })
-            //    .Profile(out var elapsed3, () =>
-            //    {
-            //        PartialFormat(format, (2, arg2));
-            //    })
-            //    ;
-
-
-            var yamlLoader = Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
             var jsonLoader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
+            var yamlLoader = Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
+            var xmlLoader = Loc.Instance.AddTranslationLoader<XmlTranslationLoader>();
+
+            var dict = xmlLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith(".xml"))));
+            var serial = xmlLoader.Serialize(dict);
 
             foreach (var embeddedResourceName in TestConfigHelper.ResourceNames)
             {
-                if (yamlLoader.CanLoadFile(embeddedResourceName))
+                if (Loc.Instance.GetTranslationLoaderForFile(embeddedResourceName) is ITranslationLoader loader)
                 {
-                    var dict = yamlLoader.Deserialize(TestConfigHelper.GetManifestResourceString(embeddedResourceName)!);
-                    if (dict == null) continue;
-                    Loc.Instance.AddLanguageDictionaries(dict);
-                }
-                else if (jsonLoader.CanLoadFile(embeddedResourceName))
-                {
-                    var dict = jsonLoader.Deserialize(TestConfigHelper.GetManifestResourceString(embeddedResourceName)!);
-                    if (dict == null) continue;
-                    Loc.Instance.AddLanguageDictionaries(dict);
+                    Loc.Instance.LoadFromString(loader, TestConfigHelper.GetManifestResourceString(embeddedResourceName)!);
                 }
                 else throw new InvalidOperationException($"Resource file doesn't have any associated loaders: \"{embeddedResourceName}\"");
             }

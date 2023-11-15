@@ -22,16 +22,17 @@ jobs:
           fetch-depth:  0
 
       - name:   Update .csproj Version Numbers
-        run:    |
+        run:    | # When adding items to this list, make sure you also add them to UpdateNugetPackages.yaml so the documentation gets included too
                 $tag = $(git describe --tags --abbrev=0)
                 $tag -cmatch '(?<MAJOR>\d+?)\.(?<MINOR>\d+?)\.(?<PATCH>\d+?)(?<EXTRA>.*)' > $null
                 $tag_3_part = $Matches.MAJOR + '.' + $Matches.MINOR + '.' + $Matches.PATCH
-                $copyright = "Copyright © 2022-$((Get-Date).Year) by `$`(Authors`)"
+                $copyright = "Copyright © $((Get-Date).Year) by `$`(Authors`)"
                 
-                .\.github\workflows\scripts\SetVersion.ps1 -Path Localization/Localization.csproj                Version=$tag FileVersion=$tag_3_part Copyright=$copyright
-                .\.github\workflows\scripts\SetVersion.ps1 -Path Localization.Json/Localization.Json.csproj      Version=$tag FileVersion=$tag_3_part Copyright=$copyright
-                .\.github\workflows\scripts\SetVersion.ps1 -Path Localization.Yaml/Localization.Yaml.csproj      Version=$tag FileVersion=$tag_3_part Copyright=$copyright
-                .\.github\workflows\scripts\SetVersion.ps1 -Path Localization.WPF/Localization.WPF.csproj        Version=$tag FileVersion=$tag_3_part Copyright=$copyright
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization/Localization.csproj                Version=$tag FileVersion=$tag_3_part Copyright=$copyright
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Json/Localization.Json.csproj      Version=$tag FileVersion=$tag_3_part Copyright=$copyright
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Yaml/Localization.Yaml.csproj      Version=$tag FileVersion=$tag_3_part Copyright=$copyright
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Xml/Localization.Xml.csproj        Version=$tag FileVersion=$tag_3_part Copyright=$copyright
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.WPF/Localization.WPF.csproj        Version=$tag FileVersion=$tag_3_part Copyright=$copyright
 
       - name:   Push Changes
         run:    |

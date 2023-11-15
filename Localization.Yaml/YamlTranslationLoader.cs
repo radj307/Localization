@@ -14,7 +14,9 @@ namespace Localization.Yaml
     public class YamlTranslationLoader : ITranslationLoader
     {
         #region Properties
-        /// <inheritdoc/>
+        /// <summary>
+        /// ".yaml" &amp; ".yml" files.
+        /// </summary>
         public string[] SupportedFileExtensions { get; } = new[] { ".yml", ".yaml" };
         #endregion Properties
 
@@ -35,37 +37,29 @@ namespace Localization.Yaml
             var root = (YamlMappingNode)yamlStream.Documents[0].RootNode;
 
             var dict = new Dictionary<string, Dictionary<string, string>>();
-            root.ToList().ForEach(nodePair => ParseElementRecursive(dict, new Stack<string>(), nodePair));
+            foreach (var (k, v) in root)
+                ParseElementRecursive(dict, new Stack<string>(), k.ToString(), v);
 
             return dict;
         }
         #endregion Deserialize
 
         #region (Private) ParseElementRecursive
-        private static void ParseElementRecursive(Dictionary<string, Dictionary<string, string>> dict, Stack<string> path, KeyValuePair<YamlNode, YamlNode> nodePair)
+        private static void ParseElementRecursive(Dictionary<string, Dictionary<string, string>> dict, Stack<string> path,
+            string key, YamlNode node)
         {
-            if (nodePair.Value is YamlMappingNode mappingNode)
+            if (node is YamlMappingNode mappingNode)
             { // node
-                path.Push(nodePair.Key.ToString());
-                mappingNode.ToList().ForEach(subNodePair => ParseElementRecursive(dict, path, subNodePair));
+                path.Push(key);
+                mappingNode.ToList().ForEach(pr => ParseElementRecursive(dict, path, pr.Key.ToString(), pr.Value));
                 path.Pop();
             }
             else
             { // value
-                var languageName = nodePair.Key.ToString();
-
-                // get or create a language dictionary for this language name
-                Dictionary<string, string> languageDictionary;
-                if (dict.TryGetValue(languageName, out var existingLangDict))
-                    languageDictionary = existingLangDict;
-                else
-                {
-                    languageDictionary = new Dictionary<string, string>();
-                    dict.Add(languageName, languageDictionary);
-                }
-
-                // add the translated string to the language dictionary
-                languageDictionary.Add(string.Join(Loc.PathSeparator, path.Reverse()), nodePair.Value.ToString());
+                // add this translation to the dictionary
+                dict.GetOrCreateValue(key).Add(
+                    key: string.Join(Loc.PathSeparator, path.Reverse()),
+                    value: node.ToString());
             }
         }
         #endregion (Private) ParseElementRecursive

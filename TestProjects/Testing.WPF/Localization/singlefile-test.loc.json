@@ -1,0 +1,11 @@
+﻿{
+  "$LanguageName": "English",
+
+  "MainWindow": {
+    "Text": "Some text",
+    "TextBlock": "I have a translation for this too, you know.",
+    "Block": {
+      "Sub": "Hello world!"
+    }
+  }
+}
