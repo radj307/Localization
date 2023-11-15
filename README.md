@@ -9,6 +9,7 @@ Loosely based on [CodingSeb.Localization](https://github.com/codingseb/Localizat
 | **radj307.Localization.WPF**  | [![NuGet Status](http://img.shields.io/nuget/v/radj307.Localization.WPF.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/radj307.Localization.WPF)   |
 | **radj307.Localization.Json** | [![NuGet Status](http://img.shields.io/nuget/v/radj307.Localization.Json.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/radj307.Localization.Json) |
 | **radj307.Localization.Yaml** | [![NuGet Status](http://img.shields.io/nuget/v/radj307.Localization.Yaml.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/radj307.Localization.Yaml) |
+| **radj307.Localization.Xml**  | [![NuGet Status](http://img.shields.io/nuget/v/radj307.Localization.Xml.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/radj307.Localization.Xml)   |
 
 ## Packages
 
@@ -23,6 +24,8 @@ The library's functionality is divided between packages, allowing you to only in
   Contains the default serializer/deserializer for JSON translation config files.
 - **radj307.Localization.Yaml**  
   Contains the default serializer/deserializer for YAML translation config files.
+- **radj307.Localization.Xml**  
+  Contains the default serializer/deserializer for XML translation config files.
 
 ## Basic Usage
 
