@@ -1,24 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
-		<Nullable>enable</Nullable>
-		<Authors>radj307</Authors>
-		<Description>XML support for radj307.Localization</Description>
-		<PackageProjectUrl>github.com/radj307/Localization</PackageProjectUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<IncludeSymbols>True</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<PackageId>radj307.$(AssemblyName)</PackageId>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>0.0.0</Version>
-		<FileVersion>0.0.0</FileVersion>
-		<Copyright>Copyright © 2022-2023 by $(Authors)</Copyright>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\Localization\Localization.csproj" />
-	</ItemGroup>
-
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <Authors>radj307</Authors>
+    <Description>XML support for radj307.Localization</Description>
+    <PackageProjectUrl>github.com/radj307/Localization</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>radj307.$(AssemblyName)</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>0.2.0</Version>
+    <FileVersion>0.2.0</FileVersion>
+    <Copyright>Copyright © 2023 by $(Authors)</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Localization\Localization.csproj" />
+  </ItemGroup>
 </Project>
