@@ -37,19 +37,19 @@ jobs:
                 dotnet build -c Release
 
 
-                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization/Localization.csproj                DocumentationFile="../output/$(MSBuildProjectName).xml"
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization/Localization.csproj                DocumentationFile="../output/`$`(MSBuildProjectName`).xml"
                 dotnet pack ./Localization/Localization.csproj --noLogo -c Release -o output --include-symbols
 
-                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Json/Localization.Json.csproj      DocumentationFile="../output/$(MSBuildProjectName).xml"
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Json/Localization.Json.csproj      DocumentationFile="../output/`$`(MSBuildProjectName`).xml"
                 dotnet pack ./Localization.Json/Localization.Json.csproj --noLogo -c Release -o output --include-symbols
 
-                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Yaml/Localization.Yaml.csproj      DocumentationFile="../output/$(MSBuildProjectName).xml"
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Yaml/Localization.Yaml.csproj      DocumentationFile="../output/`$`(MSBuildProjectName`).xml"
                 dotnet pack ./Localization.Yaml/Localization.Yaml.csproj --noLogo -c Release -o output --include-symbols
 
-                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Xml/Localization.Xml.csproj        DocumentationFile="../output/$(MSBuildProjectName).xml"
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.Xml/Localization.Xml.csproj        DocumentationFile="../output/`$`(MSBuildProjectName`).xml"
                 dotnet pack ./Localization.Xml/Localization.Xml.csproj --noLogo -c Release -o output --include-symbols
 
-                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.WPF/Localization.WPF.csproj        DocumentationFile="../output/$(MSBuildProjectName).xml"
+                .\.github\workflows\scripts\SetProperty.ps1 -Path Localization.WPF/Localization.WPF.csproj        DocumentationFile="../output/`$`(MSBuildProjectName`).xml"
                 dotnet pack ./Localization.WPF/Localization.WPF.csproj --noLogo -c Release -o output --include-symbols
 
       - name:   Upload Packages
