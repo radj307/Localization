@@ -79,6 +79,19 @@ Syntax used by the `JsonTranslationLoader` class:
 }
 ```
 
+Alternative syntax used by the `JsonSingleTranslationLoader` class:
+
+```json
+{
+  "$LanguageName": "English",
+
+  "MainWindow": {
+    "Text": "Hello World!"
+  }
+}
+```
+`JsonSingleTranslationLoader` only supports 1 language per file, but the syntax is much easier to write.
+
 #### YAML
 
 Syntax used by the `YamlTranslationLoader` class:  
