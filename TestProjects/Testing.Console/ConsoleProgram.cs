@@ -8,7 +8,28 @@ using System.Text.RegularExpressions;
 
 namespace Testing
 {
-    internal static class Program
+    static class Extensions
+    {
+        /// <summary>
+        /// Selects non-<see langword="null"/> values from the enumerable using the specified <paramref name="selector"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of element in the enumerable.</typeparam>
+        /// <typeparam name="TResult">The type of element in the resulting enumerable.</typeparam>
+        /// <param name="enumerable">The enumerable to apply the <paramref name="selector"/> to.</param>
+        /// <param name="selector">A function that accepts a parameter of type <typeparamref name="TSource"/> and returns a <typeparamref name="TResult"/> instance.</param>
+        /// <returns>The non-<see langword="null"/> selected elements from the enumerable.</returns>
+        public static IEnumerable<TResult> SelectValue<TSource, TResult>(this IEnumerable<TSource> enumerable, Func<TSource, TResult?> selector)
+        {
+            foreach (var item in enumerable)
+            {
+                if (selector(item) is TResult value)
+                {
+                    yield return value;
+                }
+            }
+        }
+    }
+    internal static class ConsoleProgram
     {
         public static string PartialFormat(string format, params (int, object)[] formatArgs)
         {
@@ -46,21 +67,34 @@ namespace Testing
 
             return string.Format(format, args.ToArray());
         }
-        class TESTLOADER : ITranslationLoader
+        public class TEST
         {
-            public string[] SupportedFileExtensions { get; } = new string[] { ".xml", ".json", ".yml", ".yaml" };
+            public string Format { get; set; } = "{0}";
+            public object? Arg1 { get; set; }
+            public object? Arg2 { get; set; }
+            public object? Arg3 { get; set; } = new();
+            public object? Arg4 { get; set; }
+            public object? Arg5 { get; set; }
+            public object? Arg6 { get; set; } = new();
+            public object? Arg7 { get; set; }
+            public object? Arg8 { get; set; }
+            public object? Arg9 { get; set; } = new(); 
+            public object? Arg10 { get; set; }
 
-            public Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData) => throw new NotImplementedException();
-            public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries) => throw new NotImplementedException();
+            public object[] GetArgs() => typeof(TEST)
+                .GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
+                .SelectValue(pInfo => pInfo.CanRead && pInfo.Name.StartsWith("Arg", StringComparison.Ordinal) ? pInfo.GetValue(this) : null)
+                .ToArray();
+            public object?[] GetFormatArgs() => typeof(TEST)
+                .GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
+                .Select(pInfo => pInfo.CanRead && pInfo.Name.StartsWith("Arg", StringComparison.Ordinal) ? pInfo.GetValue(this) : null)
+                .ToArray();
         }
         static void Main(string[] args)
         {
             var jsonLoader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
             var yamlLoader = Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
             var xmlLoader = Loc.Instance.AddTranslationLoader<XmlTranslationLoader>();
-
-            var dict = xmlLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith(".xml"))));
-            var serial = xmlLoader.Serialize(dict);
 
             foreach (var embeddedResourceName in TestConfigHelper.ResourceNames)
             {

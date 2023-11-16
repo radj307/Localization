@@ -4,8 +4,10 @@ using Localization.Yaml;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Data;
 
 namespace Testing.WPF
 {
@@ -34,6 +36,25 @@ namespace Testing.WPF
             return app.Run(new MainWindow());
         }
     }
+
+    public class RemoveVowelsAndSometimesYConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var s = ((string)value)
+                .Replace("a", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("e", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("i", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("o", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("u", "", StringComparison.OrdinalIgnoreCase);
+            return (Random.Shared.Next(0, 2) == 0)
+                ? s.Replace("y", "", StringComparison.OrdinalIgnoreCase)
+                : s;
+                
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
     public class TestObject { }
     public class Container
     {

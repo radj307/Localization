@@ -111,7 +111,6 @@ namespace Testing
         /// <param name="preAction">An action to perform prior to the <paramref name="action"/>, or <see langword="null"/>.</param>
         /// <param name="postAction">An action to perform after the <paramref name="action"/>, or <see langword="null"/>.</param>
         /// <returns>The average amount of elapsed time, as a <see cref="TimeSpan"/> instance.</returns>
-        [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public TimeSpan Profile(int count, Action action, Action? preAction = null, Action? postAction = null)
         {
             return new TimeSpan((long)Math.Round(ProfileAll(count, action, preAction, postAction).Select(ts => ts.Ticks).Average(), 0));
@@ -124,7 +123,6 @@ namespace Testing
         /// <param name="preAction">An action to perform prior to the <paramref name="action"/>, or <see langword="null"/>. The <see cref="int"/> parameter is the invocation counter.</param>
         /// <param name="postAction">An action to perform after the <paramref name="action"/>, or <see langword="null"/>. The <see cref="int"/> parameter is the invocation counter.</param>
         /// <returns>The average amount of elapsed time, as a <see cref="TimeSpan"/> instance.</returns>
-        [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public TimeSpan Profile(int count, Action action, Action<int>? preAction, Action<int>? postAction)
         {
             return new TimeSpan((long)Math.Round(ProfileAll(count, action, preAction, postAction).Select(ts => ts.Ticks).Average(), 0));
@@ -216,7 +214,6 @@ namespace Testing
         /// <param name="preAction">An action to perform prior to the <paramref name="action"/>, or <see langword="null"/>.</param>
         /// <param name="postAction">An action to perform after the <paramref name="action"/>, or <see langword="null"/>.</param>
         /// <returns>The average elapsed time, measured in microseconds.</returns>
-        [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public double ProfileMicroseconds(int count, Action action, Action? preAction = null, Action? postAction = null)
         {
             double avgTicks = ProfileTicks(count, action, preAction, postAction);
@@ -230,7 +227,6 @@ namespace Testing
         /// <param name="preAction">An action to perform prior to the <paramref name="action"/>, or <see langword="null"/>. The <see cref="int"/> parameter is the invocation counter.</param>
         /// <param name="postAction">An action to perform after the <paramref name="action"/>, or <see langword="null"/>. The <see cref="int"/> parameter is the invocation counter.</param>
         /// <returns>The average elapsed time, measured in microseconds.</returns>
-        [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public double ProfileMicroseconds(int count, Action action, Action<int>? preAction, Action<int>? postAction)
         {
             double avgTicks = ProfileTicks(count, action, preAction, postAction);
