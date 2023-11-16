@@ -25,17 +25,7 @@ namespace Localization
         /// Creates a new <see cref="Loc"/> instance.
         /// </summary>
         [Obsolete("Creating a new Loc instance is not recommended. Use the static Loc.Instance property instead.", error: false)]
-        public Loc() => _currentLanguageName = string.Empty;
-        /// <summary>
-        /// Creates a new <see cref="Loc"/> instance with the specified <paramref name="languages"/> and <paramref name="currentLanguageName"/>.
-        /// </summary>
-        /// <param name="languages">Language dictionary.</param>
-        /// <param name="currentLanguageName">The current language name.</param>
-        public Loc(IReadOnlyObservableConcurrentDictionary<string, TranslationDictionary> languages, string currentLanguageName)
-        {
-            _languages = new ObservableConcurrentDictionary<string, TranslationDictionary>(languages);
-            _currentLanguageName = currentLanguageName;
-        }
+        public Loc() { }
         #endregion Constructor
 
         #region Fields
@@ -84,7 +74,7 @@ namespace Localization
                 NotifyCurrentLanguageChanged(previousValue, _currentLanguageName!);
             }
         }
-        private string _currentLanguageName;
+        private string _currentLanguageName = string.Empty;
         /// <summary>
         /// Gets the <see cref="TranslationDictionary"/> associated with the CurrentLanguageName.
         /// </summary>
@@ -201,6 +191,16 @@ namespace Localization
             FallbackLanguageChanging?.Invoke(this, args);
             return args;
         }
+        /// <summary>
+        /// Occurs when a new language is added for any reason.
+        /// </summary>
+        public event LanguageEventHandler? LanguageAdded;
+        private void NotifyLanguageAdded(string languageName, TranslationDictionary translations) => LanguageAdded?.Invoke(this, new LanguageEventArgs(languageName, translations));
+        /// <summary>
+        /// Occurs when a language is removed for any reason.
+        /// </summary>
+        public event LanguageEventHandler? LanguageRemoved;
+        private void NotifyLanguageRemoved(string languageName, TranslationDictionary translations) => LanguageRemoved?.Invoke(this, new LanguageEventArgs(languageName, translations));
         #endregion Events
 
         #region Methods
@@ -213,7 +213,7 @@ namespace Localization
         {
             for (int i = Languages.Count - 1; i >= 0; --i)
             {
-                _languages.Remove(_languages.Keys.ElementAt(i));
+                RemoveLanguage(_languages.Keys.ElementAt(i));
             }
             _availableLanguageNames.Clear();
             if (clearCurrentLanguage)
@@ -225,38 +225,41 @@ namespace Localization
 
         #region AddTranslations
         /// <summary>
-        /// Adds <paramref name="translations"/> to the specified <paramref name="languageName"/>.
+        /// Adds <paramref name="translations"/> to the specified <paramref name="languageName"/>. The language is created if it doesn't exist.
         /// </summary>
         /// <param name="languageName">The name of the language to add.</param>
         /// <param name="translations">The language dictionary to merge into the specified <paramref name="languageName"/>.</param>
-        /// <param name="overwriteExisting">When <see langword="true"/> and a translated string already exists, it is replaced; otherwise when <see langword="false"/>, only new strings are added.</param>
+        /// <param name="overwriteExistingKeys">When <see langword="true"/> and a translated string already exists, it is replaced; otherwise when <see langword="false"/>, only new strings are added.</param>
         /// <returns>The merged <see cref="TranslationDictionary"/>.</returns>
-        public TranslationDictionary AddTranslations(string languageName, IReadOnlyDictionary<string, string> translations, bool overwriteExisting = true)
+        public TranslationDictionary AddTranslations(string languageName, IReadOnlyDictionary<string, string> translations, bool overwriteExistingKeys = true)
         {
             if (Languages.TryGetValue(languageName, out var existing))
             {
-                existing.Merge(translations, overwriteExisting);
+                existing.Merge(translations, overwriteExistingKeys);
                 return existing;
             }
             else
             {
-                _languages.Add(languageName, new TranslationDictionary(translations));
+                var translationDictionary = new TranslationDictionary(translations);
+                _languages.Add(languageName, translationDictionary);
                 _availableLanguageNames.Add(languageName);
+                NotifyLanguageAdded(languageName, translationDictionary);
                 return Languages[languageName];
             }
         }
         /// <inheritdoc cref="AddTranslations(string, IReadOnlyDictionary{string, string}, bool)"/>
-        public TranslationDictionary AddTranslations(string languageName, TranslationDictionary translations, bool overwriteExisting = true)
+        public TranslationDictionary AddTranslations(string languageName, TranslationDictionary translations, bool overwriteExistingKeys = true)
         {
             if (Languages.TryGetValue(languageName, out var existing))
             {
-                existing.Merge(translations, overwriteExisting);
+                existing.Merge(translations, overwriteExistingKeys);
                 return existing;
             }
             else
             {
                 _languages.Add(languageName, translations);
                 _availableLanguageNames.Add(languageName);
+                NotifyLanguageAdded(languageName, translations);
                 return Languages[languageName];
             }
         }
@@ -271,9 +274,12 @@ namespace Localization
         /// <returns>The translations for <paramref name="languageName"/> that were replaced.</returns>
         public TranslationDictionary? ReplaceLanguage(string languageName, TranslationDictionary newTranslations)
         {
-            var previousTranslations = TakeLanguage(languageName);
-            AddTranslations(languageName, newTranslations);
-            return previousTranslations;
+            if (RemoveLanguage(languageName, out var previousTranslations))
+            {
+                AddTranslations(languageName, newTranslations);
+                return previousTranslations;
+            }
+            else return null;
         }
         /// <summary>
         /// Replaces the specified <paramref name="languageName"/> with <paramref name="newTranslations"/> and a <paramref name="newLanguageName"/>.
@@ -284,10 +290,16 @@ namespace Localization
         /// <returns>The translations for <paramref name="languageName"/> that were replaced.</returns>
         public TranslationDictionary? ReplaceLanguage(string languageName, TranslationDictionary newTranslations, string newLanguageName)
         {
-            var previousTranslations = TakeLanguage(languageName);
-            AddTranslations(newLanguageName, newTranslations);
-            return previousTranslations;
+            if (RemoveLanguage(languageName, out var previousTranslations))
+            {
+                AddTranslations(newLanguageName, newTranslations);
+                return previousTranslations;
+            }
+            else return null;
         }
+        /// <inheritdoc cref="ReplaceLanguage(string, TranslationDictionary, string)"/>
+        public TranslationDictionary? ReplaceLanguage(string languageName, string newLanguageName, TranslationDictionary newTranslations)
+            => ReplaceLanguage(languageName, newTranslations, newLanguageName);
         #endregion ReplaceLanguage
 
         #region RemoveLanguage
@@ -295,26 +307,20 @@ namespace Localization
         /// Removes the translations for the specified <paramref name="languageName"/>.
         /// </summary>
         /// <param name="languageName">The name of the language to remove.</param>
+        /// <param name="translations">The <see cref="TranslationDictionary"/> of the removed language.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
-        public bool RemoveLanguage(string languageName) => _languages.Remove(languageName);
-        #endregion RemoveLanguage
-
-        #region TakeLanguage
-        /// <summary>
-        /// Gets and removes the translations for the specified <paramref name="languageName"/>.
-        /// </summary>
-        /// <param name="languageName">The name of the language to take.</param>
-        /// <returns>The <see cref="TranslationDictionary"/> for the specified <paramref name="languageName"/> if found; otherwise, <see langword="null"/>.</returns>
-        public TranslationDictionary? TakeLanguage(string languageName)
+        public bool RemoveLanguage(string languageName, out TranslationDictionary translations)
         {
-            if (Languages.TryGetValue(languageName, out var translations))
+            if (Languages.TryGetValue(languageName, out translations) && _languages.Remove(languageName))
             {
-                _languages.Remove(languageName);
-                return translations;
+                NotifyLanguageRemoved(languageName, translations);
+                return true;
             }
-            return null;
+            return false;
         }
-        #endregion TakeLanguage
+        /// <inheritdoc cref="RemoveLanguage(string, out TranslationDictionary)"/>
+        public bool RemoveLanguage(string languageName) => RemoveLanguage(languageName, out _);
+        #endregion RemoveLanguage
 
         #region RenameLanguage
         /// <summary>
@@ -325,7 +331,7 @@ namespace Localization
         /// <returns><see langword="true"/> when the language was successfully renamed; otherwise, <see langword="false"/>.</returns>
         public bool RenameLanguage(string languageName, string newName)
         {
-            if (TakeLanguage(languageName) is TranslationDictionary translations)
+            if (RemoveLanguage(languageName, out var translations))
             {
                 AddTranslations(newName, (IReadOnlyDictionary<string, string>)translations);
                 return true;
@@ -373,17 +379,11 @@ namespace Localization
         /// <summary>
         /// Adds the specified <paramref name="loader"/> to the list of TranslationLoaders, if it isn't present already.
         /// </summary>
-        /// <remarks>
-        /// Returns <see langword="false"/> when the specified <paramref name="loader"/> conflicts with any current loaders.
-        /// </remarks>
         /// <param name="loader">The <see cref="ITranslationLoader"/> instance to add.</param>
         /// <returns><see langword="true"/> if the <paramref name="loader"/> was successfully added to the list, or was already present; otherwise, <see langword="false"/>.</returns>
-        public bool AddTranslationLoader(ITranslationLoader loader, bool allowConflicting = false)
+        public bool AddTranslationLoader(ITranslationLoader loader)
         {
             if (TranslationLoaders.Contains(loader)) return true;
-
-            if (!allowConflicting && TranslationLoaders.Any(tl => loader.ConflictsWith(tl)))
-                return false;
 
             TranslationLoaders.Add(loader);
             return true;
@@ -393,7 +393,7 @@ namespace Localization
         /// </summary>
         /// <typeparam name="TLoader">A type that implements <see cref="ITranslationLoader"/> and is default-constructible.</typeparam>
         /// <returns>A pre-existing <typeparamref name="TLoader"/> instance when one was found; otherwise, a new <typeparamref name="TLoader"/> instance.</returns>
-        public TLoader AddTranslationLoader<TLoader>(bool allowConflicting = false) where TLoader : ITranslationLoader, new()
+        public TLoader AddTranslationLoader<TLoader>() where TLoader : ITranslationLoader, new()
         {
             if (TranslationLoaders.Count > 0)
             {
@@ -408,28 +408,29 @@ namespace Localization
         }
         #endregion AddTranslationLoader
 
-        #region GetTranslationLoaderForFile
+        #region GetTranslationLoaderForPath
         /// <summary>
         /// Gets the first translation loader that supports the specified <paramref name="filePath"/>.
+        /// Does not check if the <paramref name="filePath"/> is a valid filesystem path.
         /// </summary>
         /// <param name="filePath">A file name or path to find a translation loader for.</param>
-        /// <returns>A <see cref="ITranslationLoader"/> instance that supports the specified <paramref name="filePath"/> if one was added; otherwise, <see langword="null"/>.</returns>
-        /// <exception cref="NoTranslationLoadersException">There weren't any translation loaders in the list.</exception>
-        public ITranslationLoader? GetTranslationLoaderForFile(string filePath)
+        /// <returns>The first <see cref="ITranslationLoader"/> instance that can load from the <paramref name="filePath"/> if found; otherwise, <see langword="null"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">There weren't any translation loaders in the list.</exception>
+        public ITranslationLoader? GetTranslationLoaderForPath(string filePath)
         {
             if (TranslationLoaders.Count == 0)
-                throw new NoTranslationLoadersException($"No {nameof(ITranslationLoader)} instances were added to the {nameof(TranslationLoaders)} list prior to calling {nameof(Loc)}.{nameof(LoadFromFile)}!");
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
 
             foreach (var loader in TranslationLoaders)
             {
-                if (loader.CanLoadFile(filePath))
+                if (loader.CanLoadFromPath(filePath))
                 {
                     return loader;
                 }
             }
             return null;
         }
-        #endregion GetTranslationLoaderForFile
+        #endregion GetTranslationLoaderForPath
 
         #region GetTranslationLoader
         /// <summary>
@@ -440,8 +441,12 @@ namespace Localization
         /// </remarks>
         /// <param name="type">The type of <see cref="ITranslationLoader"/> to get.</param>
         /// <returns><see cref="ITranslationLoader"/> instance with the specified <paramref name="type"/> if found; otherwise, <see langword="null"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
         public ITranslationLoader? GetTranslationLoader(Type type)
         {
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException();
+
             foreach (var loader in TranslationLoaders)
             {
                 if (loader.GetType().IsAssignableFrom(type)) return loader;
@@ -456,15 +461,24 @@ namespace Localization
         /// </remarks>
         /// <typeparam name="T">Class type that implements <see cref="ITranslationLoader"/> to get.</typeparam>
         /// <returns>The <see cref="ITranslationLoader"/> instance if found; otherwise, <see langword="null"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
         public T? GetTranslationLoader<T>() where T : class, ITranslationLoader
             => (T?)GetTranslationLoader(typeof(T))!;
+        #endregion GetTranslationLoader
+
+        #region GetOrCreateTranslationLoader
+        /// <summary>
+        /// Gets a translation loader of type <typeparamref name="T"/>, or creates a new one if it doesn't exist.
+        /// </summary>
+        /// <typeparam name="T">Class type that implements <see cref="ITranslationLoader"/> and is default-constructible.</typeparam>
+        /// <returns>The existing/new <see cref="ITranslationLoader"/> instance of type <typeparamref name="T"/>.</returns>
         public T GetOrCreateTranslationLoader<T>() where T : class, ITranslationLoader, new()
         {
-            if (GetTranslationLoader(typeof(T)) is T existingLoader)
+            if (TranslationLoaders.Count > 0 && GetTranslationLoader(typeof(T)) is T existingLoader)
                 return existingLoader;
             else return AddTranslationLoader<T>();
         }
-        #endregion GetTranslationLoader
+        #endregion GetOrCreateTranslationLoader
 
         #region LoadFromString
         /// <summary>
@@ -473,6 +487,7 @@ namespace Localization
         /// <param name="loader">The <see cref="ITranslationLoader"/> instance to use for deserializing the string.</param>
         /// <param name="serializedData">A string containing the serialized contents of a translation config file.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">The specified <paramref name="loader"/> was null.</exception>
         public bool LoadFromString(ITranslationLoader loader, string? serializedData)
         {
             if (loader == null)
@@ -493,6 +508,7 @@ namespace Localization
         /// </summary>
         /// <param name="serializedData">A string containing the serialized contents of a translation config file.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
         [Obsolete("This method is slow, you should use LoadFromString(ITranslationLoader, string?) instead.")]
         public bool LoadFromString(string? serializedData)
         {
@@ -505,7 +521,7 @@ namespace Localization
                         return true;
                     }
                 }
-                catch { }
+                catch (Exception ex) when (!(ex is EmptyTranslationLoadersListException)) { }
             }
             return false;
         }
@@ -517,40 +533,46 @@ namespace Localization
         /// </summary>
         /// <param name="filePath">The path of a translation config file.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
-        /// <exception cref="NoTranslationLoadersException">There weren't any translation loaders in the list.</exception>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
         public bool LoadFromFile(string filePath)
         {
-            if (!File.Exists(filePath))
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
+            else if (!File.Exists(filePath))
                 return false;
 
-            if (GetTranslationLoaderForFile(filePath) is ITranslationLoader loader
-                && loader.TryLoadFromFile(filePath, out var dict))
+            foreach (var loader in TranslationLoaders)
             {
-                AddLanguage(dict);
-                return true;
+                if (loader.CanLoadFromPath(filePath) && loader.TryLoadFromFile(filePath, out var languages))
+                {
+                    AddLanguage(languages);
+                    return true;
+                }
             }
-            else return false;
+            return false;
         }
         #endregion LoadFromFile
 
         #region LoadFromDirectory
         /// <summary>
-        /// Loads all translation configs in the specified directory using the available translation loaders.
+        /// Loads all files matching the glob pattern "*.loc*" in the specified directory using the available translation loaders.
         /// </summary>
         /// <remarks>
         /// This method catches any exceptions thrown while loading files.
         /// </remarks>
         /// <param name="directoryPath">The path of a directory to load translation configs from.</param>
         /// <param name="recurse">When <see langword="true"/>, translation configs in subdirectories are also loaded.</param>
-        /// <returns>An enumerable list of translation config file paths that weren't loaded because none of the available translation loaders support them.</returns>
-        /// <exception cref="NoTranslationLoadersException">There weren't any translation loaders in the list.</exception>
+        /// <returns>A list of translation config file paths that weren't loaded because none of the available translation loaders support them.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
         public IEnumerable<string>? LoadFromDirectory(string directoryPath, bool recurse = false)
         {
-            if (!Directory.Exists(directoryPath))
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
+            else if (!Directory.Exists(directoryPath))
                 return null;
 
             var failedFiles = new List<string>();
-            foreach (var filePath in Directory.EnumerateFiles(directoryPath, '*' + Loc.ExtensionPrefix + '*', new EnumerationOptions() { RecurseSubdirectories = recurse }))
+            foreach (var filePath in Directory.EnumerateFiles(directoryPath, '*' + ExtensionPrefix + '*', new EnumerationOptions() { RecurseSubdirectories = recurse }))
             {
                 try
                 {
@@ -559,7 +581,7 @@ namespace Localization
                         failedFiles.Add(filePath);
                     }
                 }
-                catch { }
+                catch (Exception ex) when (!(ex is EmptyTranslationLoadersListException)) { }
             }
             return failedFiles;
         }
@@ -571,8 +593,12 @@ namespace Localization
         /// </summary>
         /// <param name="loader">The <see cref="ITranslationLoader"/> instance to use for serializing the translations.</param>
         /// <returns>The serialized translations as a <see cref="string"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
         public string SaveToString(ITranslationLoader loader)
         {
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
+
             return loader.Serialize(Languages.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyDictionary<string, string>)kvp.Value));
         }
         /// <summary>
@@ -581,8 +607,11 @@ namespace Localization
         /// <param name="loader">The <see cref="ITranslationLoader"/> instance to use for serializing the translations.</param>
         /// <param name="languageName">The name of the language to serialize.</param>
         /// <returns>The serialized translations as a <see cref="string"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
         public string? SaveToString(ITranslationLoader loader, string languageName)
         {
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
             if (!Languages.TryGetValue(languageName, out var langDict))
                 return null;
 
@@ -592,20 +621,34 @@ namespace Localization
 
         #region SaveToFile
         /// <summary>
-        /// Saves all loaded translations to the specified <paramref name="filePath"/>.
+        /// Saves all languages to the specified <paramref name="filePath"/> using the specified <paramref name="loader"/>.
         /// </summary>
-        /// <remarks>
-        /// The loader is determined based on the specified <paramref name="filePath"/>.<br/>
-        /// This method does not catch any exceptions that occur during serialization or write operations.
-        /// </remarks>
-        /// <param name="filePath">The output filepath.</param>
-        /// <param name="useTempFile">When <see langword="true"/>, the translations are saved to a temp file, then moved to the final destination; otherwise, writes directly to the <paramref name="filePath"/>.</param>
+        /// <param name="loader">The <see cref="ITranslationLoader"/> instance to use for serializing the translations.</param>
+        /// <param name="filePath">The path of the file to save to. It, and any parent directories, will be created if they don't exist.</param>
+        /// <param name="useTempFileToAvoidBlocking">When <see langword="true"/>, the serialized data is written to a temp file and then moved to the specified <paramref name="filePath"/> to prevent blocking during long write operations; otherwise when <see langword="false"/>, writes directly to the <paramref name="filePath"/>.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
-        public bool SaveToFile(string filePath, bool useTempFile = true)
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="loader"/>/<paramref name="filePath"/> was <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="filePath"/> was an empty string.</exception>
+        public bool SaveToFile(ITranslationLoader loader, string filePath, bool useTempFileToAvoidBlocking = true)
         {
-            if (GetTranslationLoaderForFile(filePath) is ITranslationLoader loader && SaveToString(loader) is string serializedData)
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
+            else if (loader == null)
+                throw new ArgumentNullException(nameof(loader));
+            else if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
+            else if (filePath.Length == 0)
+                throw new ArgumentException($"{nameof(filePath)} cannot be blank!", nameof(filePath));
+
+            filePath = Path.GetFullPath(filePath);
+            var directoryPath = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(directoryPath))
+                Directory.CreateDirectory(directoryPath);
+
+            if (SaveToString(loader) is string serializedData)
             {
-                if (useTempFile)
+                if (useTempFileToAvoidBlocking)
                 {
                     var tempFilePath = Path.GetTempFileName();
                     File.WriteAllText(tempFilePath, serializedData, System.Text.Encoding.UTF8);
@@ -617,30 +660,27 @@ namespace Localization
             else return false;
         }
         /// <summary>
-        /// Saves the translations for the specified <paramref name="languageName"/> to the specified <paramref name="filePath"/>.
+        /// Saves all languages to the specified <paramref name="filePath"/> using the first loader that supports the specified <paramref name="filePath"/>.
         /// </summary>
-        /// <remarks>
-        /// This method does not catch any exceptions that occur during serialization or write operations.
-        /// </remarks>
-        /// <param name="filePath">The output filepath.</param>
-        /// <param name="languageName">The name of the language to serialize and save to the <paramref name="filePath"/>.</param>
-        /// <param name="useTempFile">When <see langword="true"/>, the translations are saved to a temp file, then moved to the final destination; otherwise, writes directly to the <paramref name="filePath"/>.</param>
+        /// <param name="filePath">The path of the file to save to. It, and any parent directories, will be created if they don't exist.</param>
+        /// <param name="useTempFileToAvoidBlocking">When <see langword="true"/>, the serialized data is written to a temp file and then moved to the specified <paramref name="filePath"/> to prevent blocking during long write operations; otherwise when <see langword="false"/>, writes directly to the <paramref name="filePath"/>.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
-        public bool SaveToFile(string filePath, string languageName, bool useTempFile = true)
-        {
-            if (GetTranslationLoaderForFile(filePath) is ITranslationLoader loader && SaveToString(loader, languageName) is string serializedData)
-            {
-                if (useTempFile)
-                {
-                    var tempFilePath = Path.GetTempFileName();
-                    File.WriteAllText(tempFilePath, serializedData, System.Text.Encoding.UTF8);
-                    File.Move(tempFilePath, filePath);
-                }
-                else File.WriteAllText(filePath, serializedData, System.Text.Encoding.UTF8);
-                return true;
-            }
-            else return false;
-        }
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="filePath"/> was <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="filePath"/> was an empty string.</exception>
+        public bool SaveToFile(string filePath, bool useTempFileToAvoidBlocking = true)
+            => GetTranslationLoaderForPath(filePath) is ITranslationLoader loader && SaveToFile(loader, filePath, useTempFileToAvoidBlocking);
+        /// <summary>
+        /// Saves all languages to the specified <paramref name="filePath"/> using the first loader of type <typeparamref name="TLoader"/>.
+        /// </summary>
+        /// <param name="filePath">The path of the file to save to. It, and any parent directories, will be created if they don't exist.</param>
+        /// <param name="useTempFileToAvoidBlocking">When <see langword="true"/>, the serialized data is written to a temp file and then moved to the specified <paramref name="filePath"/> to prevent blocking during long write operations; otherwise when <see langword="false"/>, writes directly to the <paramref name="filePath"/>.</param>
+        /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="filePath"/> was <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="filePath"/> was an empty string.</exception>
+        public bool SaveToFile<TLoader>(string filePath, bool useTempFileToAvoidBlocking = true) where TLoader : class, ITranslationLoader
+            => GetTranslationLoader<TLoader>() is TLoader loader && SaveToFile(loader, filePath, useTempFileToAvoidBlocking);
         #endregion SaveToFile
 
         #region (Private) WriteFileAsync
@@ -681,10 +721,13 @@ namespace Localization
         /// <param name="loader">The <see cref="ITranslationLoader"/> to use for serializing languages.</param>
         /// <param name="fileNameSelector">A selector method that chooses a filename when given a language name.</param>
         /// <returns>A list of the full paths of all successfully-created translation config files.</returns>
-        /// <exception cref="ArgumentNullException">The specified <paramref name="directoryPath"/> or <paramref name="loader"/> was <see langword="null"/>.</exception>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="directoryPath"/>/<paramref name="loader"/> was <see langword="null"/>.</exception>
         public IEnumerable<string> SaveToDirectory(string directoryPath, ITranslationLoader loader, Func<string, TranslationDictionary, string> fileNameSelector)
         {
-            if (directoryPath == null)
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
+            else if (directoryPath == null)
                 throw new ArgumentNullException(nameof(directoryPath));
             else if (loader == null)
                 throw new ArgumentNullException(nameof(loader));
@@ -701,7 +744,7 @@ namespace Localization
 
             foreach (var (languageName, languageDict) in Languages)
             {
-                string path = Path.Combine(directoryPath, Path.GetFileName(fileNameSelector(languageName, languageDict)));
+                string path = Path.Combine(directoryPath, fileNameSelector(languageName, languageDict));
 
                 writeTasks.Add(WriteFileAsync(path, loader.Serialize(languageDict.ToLanguageDictionaries(languageName))));
             }
@@ -710,6 +753,16 @@ namespace Localization
 
             return writeTasks.Select(t => t.Result);
         }
+        /// <summary>
+        /// Saves each language to its own file in the specified directory using the specified <paramref name="loader"/>.
+        /// If the directory doesn't exist, it will be created. File names are the language name with the extension ".loc" + the first supported file extention from the <paramref name="loader"/>.
+        /// </summary>
+        /// <inheritdoc cref="SaveToDirectory(string, ITranslationLoader, Func{string, TranslationDictionary, string})"/>
+        public IEnumerable<string> SaveToDirectory(string directoryPath, ITranslationLoader loader)
+            => SaveToDirectory(directoryPath, loader, (langName, _) =>
+            {
+                return langName.Replace('\\', ';').Replace('/', ';').Replace('|', ';') + ".loc" + (loader.SupportedFileExtensions.FirstOrDefault() is string ext ? (ext.StartsWith('.') ? ext : '.' + ext) : string.Empty);
+            });
         #endregion SaveToDirectory
 
         #region Translate

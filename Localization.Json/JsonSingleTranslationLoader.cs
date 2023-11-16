@@ -8,10 +8,10 @@ using System.Linq;
 namespace Localization.Json
 {
     /// <summary>
-    /// Alternative to <see cref="JsonTranslationLoader"/> that uses a easier to write syntax, with the limitation of only supporting 1 language per file.
+    /// <see cref="ITranslationLoader"/> for JSON files that uses an alternative syntax that is easier to read &amp; write, but has the limitation of only supporting 1 language per file.
     /// </summary>
     /// <remarks>
-    /// Example syntax:
+    /// Syntax example:
     /// <code>
     /// {
     ///   "$LanguageName": "English",
@@ -34,7 +34,7 @@ namespace Localization.Json
         public override Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
         {
             if (JsonConvert.DeserializeObject(serializedData) is JObject root
-                && root.TryFindChild<JValue>((key, node) => key.Equals("$LanguageName", StringComparison.OrdinalIgnoreCase), out var langNameNode, out var langNameNodeKey))
+                && root.TryFindChild<JValue>((key, node) => key.Equals("$LanguageName", StringComparison.OrdinalIgnoreCase) && node.Type == JTokenType.String, out var langNameNode, out var langNameNodeKey))
             { // this is a single-language JSON file
                 root.Remove(langNameNodeKey); //< don't include "$LanguageName" in the translations
                 var translations = new Dictionary<string, string>();

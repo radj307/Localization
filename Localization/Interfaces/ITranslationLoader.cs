@@ -3,7 +3,7 @@
 namespace Localization.Interfaces
 {
     /// <summary>
-    /// Represents an instance that can deserialize and/or serialize language dictionaries.
+    /// Represents an instance that can deserialize strings and serialize language dictionaries.
     /// </summary>
     public interface ITranslationLoader
     {

@@ -77,7 +77,7 @@ namespace Localization.UnitTests
             Loc.Instance.AddTranslations("en", new Dictionary<string, string>
             {
                 { "My.Key", "ASDF" }
-            }, overwriteExisting: true);
+            }, overwriteExistingKeys: true);
 
             Assert.Equal("ASDF", Loc.Instance.Languages["en"]["My.Key"]);
 
@@ -93,7 +93,7 @@ namespace Localization.UnitTests
             Loc.Instance.AddTranslations("en", new Dictionary<string, string>
             {
                 { "My.Key", "ASDF" }
-            }, overwriteExisting: false);
+            }, overwriteExistingKeys: false);
 
             Assert.Equal("", Loc.Instance.Languages["en"]["My.Key"]);
 
@@ -336,8 +336,8 @@ namespace Localization.UnitTests
         {
             Assert.True(Loc.Instance.AddTranslationLoader(new JsonTranslationLoader()));
 
-            Assert.NotNull(Loc.Instance.GetTranslationLoaderForFile("en.loc.json"));
-            Assert.Null(Loc.Instance.GetTranslationLoaderForFile("en.loc.yaml"));
+            Assert.NotNull(Loc.Instance.GetTranslationLoaderForPath("en.loc.json"));
+            Assert.Null(Loc.Instance.GetTranslationLoaderForPath("en.loc.yaml"));
 
             Loc.Instance.TranslationLoaders.Clear();
         }
@@ -346,8 +346,8 @@ namespace Localization.UnitTests
         {
             Assert.NotNull(Loc.Instance.AddTranslationLoader<JsonTranslationLoader>());
 
-            Assert.NotNull(Loc.Instance.GetTranslationLoaderForFile("en.loc.json"));
-            Assert.Null(Loc.Instance.GetTranslationLoaderForFile("en.loc.yaml"));
+            Assert.NotNull(Loc.Instance.GetTranslationLoaderForPath("en.loc.json"));
+            Assert.Null(Loc.Instance.GetTranslationLoaderForPath("en.loc.yaml"));
 
             Loc.Instance.TranslationLoaders.Clear();
         }

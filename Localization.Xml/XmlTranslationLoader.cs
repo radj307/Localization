@@ -24,7 +24,7 @@ namespace Localization.Xml
         /// </summary>
         /// <param name="serializedData">A string containing serialized XML translations.</param>
         /// <inheritdoc/>
-        public Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
+        public virtual Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
         {
             var doc = new XmlDocument();
             doc.LoadXml(serializedData);
@@ -56,8 +56,8 @@ namespace Localization.Xml
         }
         #endregion Deserialize
 
-        #region (Private) GetPath
-        private static string GetPath(XmlNode node)
+        #region (Protected) GetPath
+        protected static string GetPath(XmlNode node)
         {
             var path = new List<string>();
             for (XmlNode? n = node; n != null; n = n.ParentNode)
@@ -69,14 +69,14 @@ namespace Localization.Xml
             path.Reverse();
             return string.Join(Loc.PathSeparator, path);
         }
-        #endregion (Private) GetPath
+        #endregion (Protected) GetPath
 
         #region Serialize
         /// <summary>
         /// Serializes the specified <paramref name="languageDictionaries"/> into an XML string.
         /// </summary>
         /// <inheritdoc/>
-        public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries)
+        public virtual string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries)
         {
             var doc = new XmlDocument();
 
@@ -104,8 +104,8 @@ namespace Localization.Xml
         }
         #endregion Serialize
 
-        #region (Private) CreateBranch
-        private static XmlNode CreateBranch(XmlDocument doc, XmlNode root, string[] path)
+        #region (Protected) CreateBranch
+        protected static XmlNode CreateBranch(XmlDocument doc, XmlNode root, string[] path)
         {
             XmlNode node = root;
             for (int i = 0, i_max = path.Length; i < i_max; ++i)
@@ -125,6 +125,6 @@ namespace Localization.Xml
             }
             return node;
         }
-        #endregion (Private) CreateBranch
+        #endregion (Protected) CreateBranch
     }
 }

@@ -156,7 +156,9 @@ namespace Localization.WPF
         /// The translated string is always argument "{0}", the first user-provided format arg is "{1}", and so on.
         /// </summary>
         /// <remarks>
-        /// You can use square brackets "[0]" instead of regular brackets "{0}" to avoid issues with XAML strings not allowing '{' as the first character.
+        /// TrExtension format strings use a syntax more similar to composite formatting than string.Format.<br/>
+        /// You can use square brackets "[0]" instead of regular brackets "{0}" to avoid issues with XAML strings not allowing '{' as the first character.<br/>
+        /// Invalid format strings like "{asdf}" are automatically escaped (*"{{asdf}}") to avoid <see cref="FormatException"/>s.
         /// </remarks>
         public string? FormatString { get; set; } = null;
         /// <summary>
@@ -271,10 +273,11 @@ namespace Localization.WPF
                 }
             } //< end binding init
 
-            if (provideValueTarget.TargetObject is not DependencyObject targetObject) return this;
-            var targetProperty = provideValueTarget.TargetProperty as DependencyProperty;
+            if (provideValueTarget.TargetObject == null) return this;
 
-            BindingOperations.SetBinding(targetObject, targetProperty, binding);
+            //if (provideValueTarget.TargetObject is not DependencyObject targetObject) return this;
+            //var targetProperty = provideValueTarget.TargetProperty as DependencyProperty;
+            //BindingOperations.SetBinding(targetObject, targetProperty, binding);
 
             return binding.ProvideValue(serviceProvider);
         }

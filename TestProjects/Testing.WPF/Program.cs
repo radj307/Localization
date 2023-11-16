@@ -25,7 +25,7 @@ namespace Testing.WPF
 
             foreach (var resource in ResourceHelper.ResourceNames)
             {
-                var loader = Loc.Instance.GetTranslationLoaderForFile(resource);
+                var loader = Loc.Instance.GetTranslationLoaderForPath(resource);
                 if (loader == null) continue;
                 Loc.Instance.LoadFromString(loader, ResourceHelper.GetManifestResourceString(resource));
             }

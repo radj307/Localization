@@ -159,6 +159,14 @@
                                                 'World!'}}"
                 TextWrapping="Wrap" />
 
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="1"
+                Text="{Tr {Binding MyProperty},
+                          FormatString='[1]: {0} {2}',
+                          FormatArgs={MakeArray {Binding Header},
+                                                '\\'}}" />
+
             <ItemsControl
                 Grid.Row="2"
                 Grid.ColumnSpan="2"

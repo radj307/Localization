@@ -9,25 +9,33 @@ using YamlDotNet.Serialization;
 namespace Localization.Yaml
 {
     /// <summary>
-    /// Default loader for YAML translation config files.
+    /// <see cref="ITranslationLoader"/> for YAML files that uses the default syntax.
     /// </summary>
+    /// <remarks>
+    /// Syntax example:
+    /// <code>
+    /// MainWindow:
+    ///   Text:
+    ///     English: Hello World!
+    ///     French:  Salut tout le monde!
+    /// </code>
+    /// </remarks>
     public class YamlTranslationLoader : ITranslationLoader
     {
         #region Properties
         /// <summary>
         /// ".yaml" &amp; ".yml" files.
         /// </summary>
-        public string[] SupportedFileExtensions { get; } = new[] { ".yml", ".yaml" };
+        public string[] SupportedFileExtensions { get; } = new[] { ".yaml", ".yml" };
         #endregion Properties
 
         #region Methods
 
         #region Deserialize
         /// <inheritdoc/>
-        public Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
+        public virtual Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
         {
             var yamlStream = new YamlStream();
-
             using (var reader = new StringReader(serializedData))
             {
                 yamlStream.Load(reader);
@@ -45,13 +53,15 @@ namespace Localization.Yaml
         #endregion Deserialize
 
         #region (Private) ParseElementRecursive
-        private static void ParseElementRecursive(Dictionary<string, Dictionary<string, string>> dict, Stack<string> path,
-            string key, YamlNode node)
+        private static void ParseElementRecursive(Dictionary<string, Dictionary<string, string>> dict, Stack<string> path, string key, YamlNode node)
         {
             if (node is YamlMappingNode mappingNode)
             { // node
                 path.Push(key);
-                mappingNode.ToList().ForEach(pr => ParseElementRecursive(dict, path, pr.Key.ToString(), pr.Value));
+                foreach (var (k, v) in mappingNode)
+                {
+                    ParseElementRecursive(dict, path, k.ToString(), v);
+                }
                 path.Pop();
             }
             else
@@ -71,7 +81,7 @@ namespace Localization.Yaml
         /// <param name="languageDictionaries">A dictionary where the keys correspond to the language name, and values are subdictionaries where the keys are the string paths of the corresponding value, and values are the translated string.</param>
         /// <param name="serializer">The YAML serializer instance to use for serializing the data.</param>
         /// <inheritdoc cref="ITranslationLoader.Serialize(IReadOnlyDictionary{string, IReadOnlyDictionary{string, string}})"/>
-        public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries, ISerializer serializer)
+        public virtual string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries, ISerializer serializer)
         {
             var root = new YamlMappingNode();
 
@@ -87,12 +97,15 @@ namespace Localization.Yaml
             return serializer.Serialize(root);
         }
         /// <inheritdoc/>
-        public string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries)
+        public virtual string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries)
             => Serialize(languageDictionaries, new Serializer());
         #endregion Serialize
 
-        #region (Private) CreateBranch
-        private static YamlMappingNode CreateBranch(YamlMappingNode root, string[] path)
+        #region (Protected) CreateBranch
+        /// <summary>
+        /// Creates all missing subnodes in the <paramref name="path"/>, and returns the last one.
+        /// </summary>
+        protected static YamlMappingNode CreateBranch(YamlMappingNode root, string[] path)
         {
             YamlMappingNode node = root;
             for (int i = 0, i_max = path.Length; i < i_max; ++i)
@@ -113,7 +126,7 @@ namespace Localization.Yaml
             }
             return node;
         }
-        #endregion (Private) CreateBranch
+        #endregion (Protected) CreateBranch
 
         #endregion Methods
     }

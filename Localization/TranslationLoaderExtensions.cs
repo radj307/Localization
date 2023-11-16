@@ -17,7 +17,7 @@ namespace Localization
         /// <inheritdoc cref="ITranslationLoader.Serialize(IReadOnlyDictionary{string, IReadOnlyDictionary{string, string}})"/>
         public static string Serialize(this ITranslationLoader loader, IReadOnlyDictionary<string, Dictionary<string, string>> languageDictionaries)
         {
-            return loader.Serialize(languageDictionaries.AsReadOnlyDictionary());
+            return loader.Serialize(languageDictionaries.ToReadOnlyDictionary());
         }
         #endregion Serialize
 
@@ -67,7 +67,7 @@ namespace Localization
         /// <param name="loader">The <see cref="ITranslationLoader"/> instance to check.</param>
         /// <param name="fileName">The file name or path to check.</param>
         /// <returns><see langword="true"/> when the loader supports <paramref name="fileName"/>; otherwise, <see langword="false"/>.</returns>
-        public static bool CanLoadFile(this ITranslationLoader loader, string fileName)
+        public static bool CanLoadFromPath(this ITranslationLoader loader, string fileName)
         {
             var name = Path.GetFileName(fileName);
             var extensionPrefixStart = name.IndexOf(Loc.ExtensionPrefix);
@@ -85,7 +85,7 @@ namespace Localization
             for (int i = 0, i_max = loader.SupportedFileExtensions.Length; i < i_max; ++i)
             {
                 var ext = loader.SupportedFileExtensions[i];
-                if ((!ext.StartsWith('.') && ext.Equals(fileExtension[1..])) || ext.Equals(fileExtension))
+                if (!ext.StartsWith('.') && ext.Equals(fileExtension[1..]) || ext.Equals(fileExtension))
                     return true;
             }
             return false;

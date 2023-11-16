@@ -8,15 +8,16 @@ using System.Linq;
 namespace Localization.Json
 {
     /// <summary>
-    /// Default loader for JSON translation config files that supports multiple languages in the same file.
+    /// <see cref="ITranslationLoader"/> for JSON files that uses the default syntax.
     /// </summary>
     /// <remarks>
-    /// Example syntax:
+    /// Syntax example:
     /// <code>
     /// {
     ///   "MainWindow": {
     ///     "Text": {
-    ///       "English": "Some text"
+    ///       "English": "Some text",
+    ///       "French":  "Un peu de texte"
     ///     }
     ///   }
     /// }
@@ -53,11 +54,19 @@ namespace Localization.Json
         #region Methods
 
         #region Deserialize
-        /// <inheritdoc/>
+        /// <summary>
+        /// Deserializes the specified JSON data that uses multiple-language syntax.
+        /// </summary>
+        /// <param name="serializedData">Serialized JSON data that uses the default multi-language syntax.</param>
+        /// <returns>The deserialized language dictionaries.</returns>
+        /// <exception cref="InvalidOperationException">The JSON data contained an unsupported element type. Only Objects &amp; Strings are supported.</exception>
         public virtual Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
         {
             var root = (JObject?)JsonConvert.DeserializeObject(serializedData);
             if (root == null) return null;
+
+            if (root.TryFindChild<JValue>((key, node) => key.Equals("$LanguageName", StringComparison.OrdinalIgnoreCase), out _))
+                return null; //< this JSON doc uses single-language syntax; it can't be loaded by this instance.
 
             var dict = new Dictionary<string, Dictionary<string, string>>();
 

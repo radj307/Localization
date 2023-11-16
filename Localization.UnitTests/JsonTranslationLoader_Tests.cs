@@ -92,7 +92,7 @@ namespace Localization.UnitTests
             string json = @"{""A"":{""B"":{""lang"":""asdf""},""C"":{""lang"":""jkl""}}}";
             var loader = new JsonTranslationLoader();
             var dict = loader.Deserialize(json);
-            Assert.Equal(json, loader.Serialize(dict!.AsReadOnlyDictionary(), Formatting.None));
+            Assert.Equal(json, loader.Serialize(dict!.ToReadOnlyDictionary(), Formatting.None));
         }
         #endregion Serialize
 
@@ -107,17 +107,17 @@ namespace Localization.UnitTests
         public void SupportedFileExtensions_CanLoadJsonFile()
         {
             var loader = new JsonTranslationLoader();
-            Assert.True(loader.CanLoadFile("test.loc.json"));
-            Assert.True(loader.CanLoadFile("C:/Users/Username/AppData/Local/this/path/is/kinda/long/test.loc.json"));
-            Assert.True(loader.CanLoadFile("test.asdf.jkl.loc.json"));
+            Assert.True(loader.CanLoadFromPath("test.loc.json"));
+            Assert.True(loader.CanLoadFromPath("C:/Users/Username/AppData/Local/this/path/is/kinda/long/test.loc.json"));
+            Assert.True(loader.CanLoadFromPath("test.asdf.jkl.loc.json"));
         }
         [Fact]
         public void SupportedFileExtensions_CantLoadOtherFile()
         {
             var loader = new JsonTranslationLoader();
-            Assert.False(loader.CanLoadFile("test.loc.yaml"));
-            Assert.False(loader.CanLoadFile("C:/Users/Username/AppData/Local/this/path/is/kinda/long/test.loc.sjno"));
-            Assert.False(loader.CanLoadFile("test.asdf.jkl.loc.jsn"));
+            Assert.False(loader.CanLoadFromPath("test.loc.yaml"));
+            Assert.False(loader.CanLoadFromPath("C:/Users/Username/AppData/Local/this/path/is/kinda/long/test.loc.sjno"));
+            Assert.False(loader.CanLoadFromPath("test.asdf.jkl.loc.jsn"));
         }
         #endregion SupportedFileExtensions
     }

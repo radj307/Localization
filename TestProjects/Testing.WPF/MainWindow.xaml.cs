@@ -1,4 +1,5 @@
 ﻿using Localization;
+using Localization.Interfaces;
 using Localization.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -41,12 +42,9 @@ namespace Testing.WPF
 
         private void AddLanguages_Click(object sender, RoutedEventArgs e)
         {
-            var loader = Loc.Instance.GetTranslationLoader<JsonTranslationLoader>();
-            foreach (var name in ResourceHelper.ResourceNames)
+            foreach (var resourceName in ResourceHelper.ResourceNames)
             {
-                if (!name.EndsWith(".loc.json"))
-                    continue;
-                Loc.Instance.LoadFromString(loader!, ResourceHelper.GetManifestResourceString(name)!);
+                Loc.Instance.LoadFromString(ResourceHelper.GetManifestResourceString(resourceName));
             }
         }
     }

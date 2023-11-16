@@ -19,7 +19,7 @@ namespace Localization.WPF
 
         #region Fields
         private readonly TrExtension owner;
-        private static readonly Regex _getFormatStringReplacementSections = new(@"(?:\[(\d+)(?:(?:,\d+){0,1}(?::[^\s]+){0,1})\]|{(\d+)(?:(?:,\d+){0,1}(?::[^\s]+){0,1})}|({[\w\s]*}))", RegexOptions.Compiled);
+        private static readonly Regex _getFormatStringReplacementSections = new(@"(?:\[(\d+)(?:(?:,\d+){0,1}(?::[^\s]+){0,1})\]|{(\d+)(?:(?:,\d+){0,1}(?::[^\s]+){0,1})})", RegexOptions.Compiled);
         #endregion Fields
 
         #region Properties
@@ -62,7 +62,7 @@ namespace Localization.WPF
                             foundArg0 = true;
                         return $"{{{s}}}";
                     }
-                    else return m.Result($"{{{m.Value}}}"); //< invalid replacement expression; escape the brackets so string.Format doesn't throw
+                    else return m.Value; //< invalid replacement expression; escape the brackets so string.Format doesn't throw
                 });
                 string translatedString = foundArg0 ? GetTranslatedString(owner) : string.Empty;
 

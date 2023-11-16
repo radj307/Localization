@@ -67,29 +67,6 @@ namespace Testing
 
             return string.Format(format, args.ToArray());
         }
-        public class TEST
-        {
-            public string Format { get; set; } = "{0}";
-            public object? Arg1 { get; set; }
-            public object? Arg2 { get; set; }
-            public object? Arg3 { get; set; } = new();
-            public object? Arg4 { get; set; }
-            public object? Arg5 { get; set; }
-            public object? Arg6 { get; set; } = new();
-            public object? Arg7 { get; set; }
-            public object? Arg8 { get; set; }
-            public object? Arg9 { get; set; } = new(); 
-            public object? Arg10 { get; set; }
-
-            public object[] GetArgs() => typeof(TEST)
-                .GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
-                .SelectValue(pInfo => pInfo.CanRead && pInfo.Name.StartsWith("Arg", StringComparison.Ordinal) ? pInfo.GetValue(this) : null)
-                .ToArray();
-            public object?[] GetFormatArgs() => typeof(TEST)
-                .GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
-                .Select(pInfo => pInfo.CanRead && pInfo.Name.StartsWith("Arg", StringComparison.Ordinal) ? pInfo.GetValue(this) : null)
-                .ToArray();
-        }
         static void Main(string[] args)
         {
             var jsonLoader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
@@ -98,7 +75,7 @@ namespace Testing
 
             foreach (var embeddedResourceName in TestConfigHelper.ResourceNames)
             {
-                if (Loc.Instance.GetTranslationLoaderForFile(embeddedResourceName) is ITranslationLoader loader)
+                if (Loc.Instance.GetTranslationLoaderForPath(embeddedResourceName) is ITranslationLoader loader)
                 {
                     Loc.Instance.LoadFromString(loader, TestConfigHelper.GetManifestResourceString(embeddedResourceName)!);
                 }
