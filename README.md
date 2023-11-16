@@ -52,7 +52,10 @@ No `xmlns` declaration is required, the `Tr` markup extension is available globa
 <!--  The text will update automatically when you change the current language.  -->
 <TextBlock Text="{Tr 'MainWindow.Text'}" />
 <TextBlock Text="{Tr 'MainWindow.Text', DefaultText='(Translation Not Provided)'}" />
-<TextBlock Text="{Tr KeyBinding={Binding MyProperty}}" />
+<TextBlock Text="{Tr {Binding MyProperty},
+                     FormatString='[1]: {0} {2}',
+                     FormatArgs={MakeArray {Binding Header},
+                                           '\\'}}" />
 ```
 
 ### Translation Config Files
@@ -78,6 +81,19 @@ Syntax used by the `JsonTranslationLoader` class:
   }
 }
 ```
+
+Alternative syntax used by the `JsonSingleTranslationLoader` class:
+
+```json
+{
+  "$LanguageName": "English",
+
+  "MainWindow": {
+    "Text": "Hello World!"
+  }
+}
+```
+`JsonSingleTranslationLoader` only supports 1 language per file, but the syntax is much easier to write.
 
 #### YAML
 
