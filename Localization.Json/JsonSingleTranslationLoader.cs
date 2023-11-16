@@ -4,22 +4,33 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Localization.Json
 {
     /// <summary>
     /// Alternative to <see cref="JsonTranslationLoader"/> that uses a easier to write syntax, with the limitation of only supporting 1 language per file.
     /// </summary>
+    /// <remarks>
+    /// Example syntax:
+    /// <code>
+    /// {
+    ///   "$LanguageName": "English",
+    ///   
+    ///   "MainWindow": {
+    ///     "Text": "Some text"
+    ///   }
+    /// }
+    /// </code>
+    /// </remarks>
     public class JsonSingleTranslationLoader : JsonTranslationLoader, ITranslationLoader
     {
-        #region Properties
+        #region Deserialize
         /// <summary>
-        /// ".json" file extensions.
+        /// Deserializes the specified <paramref name="serializedData"/> using the single language syntax.
         /// </summary>
-        public string[] SupportedFileExtensions => Util.SupportedFileExtensionStrings;
-        #endregion Properties
-
+        /// <param name="serializedData">A string containing serialized JSON data using the single language syntax.</param>
+        /// <returns>The deserialized language, or <see langword="null"/> if the syntax is invalid for this converter.</returns>
+        /// <exception cref="InvalidOperationException">A JSON token of an unexpected type was found. Only Objects &amp; Strings are allowed.</exception>
         public override Dictionary<string, Dictionary<string, string>>? Deserialize(string serializedData)
         {
             if (JsonConvert.DeserializeObject(serializedData) is JObject root
@@ -65,6 +76,16 @@ namespace Localization.Json
 
             return null;
         }
+        #endregion Deserialize
+
+        #region Serialize
+        /// <summary>
+        /// Serializes the specified <paramref name="languageName"/> and <paramref name="translations"/> into a JSON string using the single language syntax.
+        /// </summary>
+        /// <param name="languageName">The name of the language.</param>
+        /// <param name="translations">The translation dictionary for the specified <paramref name="languageName"/>.</param>
+        /// <param name="formatting">The JSON formatting style to use.</param>
+        /// <returns><see cref="string"/> representation of the specified language.</returns>
         public string Serialize(string languageName, IReadOnlyDictionary<string, string> translations, Formatting formatting = Formatting.Indented)
         {
             var root = new JObject();
@@ -81,7 +102,7 @@ namespace Localization.Json
                     if (node.TryGetValue(currentPathSegment, out var existingSubNode))
                     {
                         if (existingSubNode.Type != JTokenType.Object)
-                            throw new InvalidOperationException($"Expected {nameof(JToken)} for path segment \"{currentPathSegment}\" in \"{string.Join(Loc.PathSeparator, path)}\" to be an object (was {existingSubNode.Type:G})!");
+                            throw new InvalidOperationException($"Expected {nameof(JToken)} for path segment \"{currentPathSegment}\" in \"{string.Join(Loc.PathSeparator, path)}\" to be an object (was {existingSubNode.Type:G})! (Something went VERY wrong!)");
                         node = (JObject)existingSubNode;
                     }
                     else
@@ -97,12 +118,19 @@ namespace Localization.Json
 
             return JsonConvert.SerializeObject(root, formatting, JsonSerializerSettings);
         }
-        public override string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languageDictionaries)
+        /// <summary>
+        /// Serializes the specified <paramref name="singleLanguageDictionary"/> into a JSON string using the single language syntax.
+        /// </summary>
+        /// <param name="singleLanguageDictionary"></param>
+        /// <returns><see cref="string"/> representation of the specified <paramref name="singleLanguageDictionary"/>.</returns>
+        /// <exception cref="InvalidOperationException"><paramref name="singleLanguageDictionary"/> contains more than 1 language.</exception>
+        public override string Serialize(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> singleLanguageDictionary)
         {
-            if (languageDictionaries.Count > 1)
+            if (singleLanguageDictionary.Count > 1)
                 throw new InvalidOperationException($"{nameof(JsonSingleTranslationLoader)} cannot serialize multiple languages without specifying a languageName!");
-            var (langName, translations) = languageDictionaries.First();
+            var (langName, translations) = singleLanguageDictionary.First();
             return Serialize(langName, translations);
         }
+        #endregion Serialize
     }
 }

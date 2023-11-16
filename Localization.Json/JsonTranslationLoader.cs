@@ -8,8 +8,20 @@ using System.Linq;
 namespace Localization.Json
 {
     /// <summary>
-    /// Default loader for JSON translation config files.
+    /// Default loader for JSON translation config files that supports multiple languages in the same file.
     /// </summary>
+    /// <remarks>
+    /// Example syntax:
+    /// <code>
+    /// {
+    ///   "MainWindow": {
+    ///     "Text": {
+    ///       "English": "Some text"
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </remarks>
     public class JsonTranslationLoader : ITranslationLoader
     {
         #region Constructors
@@ -35,7 +47,7 @@ namespace Localization.Json
         /// <summary>
         /// ".json" files.
         /// </summary>
-        public string[] SupportedFileExtensions => Util.SupportedFileExtensionStrings;
+        public string[] SupportedFileExtensions { get; } = new string[] { ".json" };
         #endregion Properties
 
         #region Methods
