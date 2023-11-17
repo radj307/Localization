@@ -1,12 +1,6 @@
 ﻿{
   "DefaultHotkeyNames": {
-    "Volume Up": {
-      "A S S": {
-        "T O": {
-          "English (US/CA)": "Muffins!"
-        }
-      }
-    },
+    "Volume Up": {},
     "Volume Down": {
       "English (US/CA)": "asdf"
     },

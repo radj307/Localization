@@ -69,10 +69,11 @@ namespace Testing
         static void Main(string[] args)
         {
             var jsonLoader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
-            var d1 = jsonLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith("spaces.loc.json"))));
+            var d1 = jsonLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith("spaces.loc.json")))!);
 
             var jsonSingleLoader = Loc.Instance.AddTranslationLoader<JsonSingleTranslationLoader>();
-            var d2 = jsonSingleLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith("spaces2.loc.json"))));
+            var d2 = jsonSingleLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith("spaces2.loc.json")))!);
+            var serial = jsonSingleLoader.Serialize(d2);
 
             var yamlLoader = Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
             var xmlLoader = Loc.Instance.AddTranslationLoader<XmlTranslationLoader>();

@@ -19,7 +19,7 @@
         <local:RemoveVowelsAndSometimesYConverter x:Key="TestStringConverter" />
 
         <DataTemplate DataType="{x:Type local:TestObject}">
-            <TextBlock FontSize="17" Text="{Tr 'MainWindow.block2', DefaultText='PLEASE HELP ME OH MY GOD'}" />
+            <TextBlock FontSize="17" Text="{Tr 'MainWindow.block2', DefaultText='well-adjusted default'}" />
         </DataTemplate>
     </Window.Resources>
 

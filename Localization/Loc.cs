@@ -19,6 +19,8 @@ namespace Localization
     /// </remarks>
     public class Loc : INotifyPropertyChanged
     {
+        #region Instance
+
         #region Constructor
         /// <summary>
         /// Creates a new <see cref="Loc"/> instance.
@@ -27,24 +29,7 @@ namespace Localization
         public Loc() { }
         #endregion Constructor
 
-        #region Fields
-        /// <summary>
-        /// The extension prefix for translation config files.
-        /// </summary>
-        public const string ExtensionPrefix = ".loc";
-        /// <summary>
-        /// The separator character for string paths.
-        /// </summary>
-        public const char PathSeparator = '.';
-        #endregion Fields
-
         #region Properties
-        /// <summary>
-        /// Gets the <see langword="static"/> <see cref="Loc"/> instance.
-        /// </summary>
-#pragma warning disable CS0618 // Type or member is obsolete
-        public static Loc Instance { get; } = new Loc();
-#pragma warning restore CS0618 // Type or member is obsolete
         /// <summary>
         /// Gets the language dictionary that contains all loaded translations.
         /// </summary>
@@ -1139,69 +1124,6 @@ namespace Localization
             => keys.Select(k => Translate(k, stringComparison, defaultText, languageName, allowFallback));
         #endregion TranslateAll
 
-        #region (Static) Tr
-        /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the current language.
-        /// </summary>
-        /// <param name="key">The path of the target translated string.</param>
-        /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
-        /// <returns>
-        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
-        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
-        /// 3. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
-        /// 4. An empty string.
-        /// </returns>
-        public static string Tr(string key, string? defaultText = null) => Instance.Translate(key, defaultText);
-        /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the current language.
-        /// </summary>
-        /// <param name="key">The path of the target translated string.</param>
-        /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
-        /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
-        /// <returns>
-        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
-        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
-        /// 3. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
-        /// 4. An empty string.
-        /// </returns>
-        public static string Tr(string key, StringComparison stringComparison, string? defaultText = null) => Instance.Translate(key, stringComparison, defaultText);
-        /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the specified language.
-        /// </summary>
-        /// <param name="key">The path of the target translated string.</param>
-        /// <param name="defaultText">A string to return when the requested translation wasn't found for the specified language.</param>
-        /// <param name="languageName">The name of the language to get the translation for.</param>
-        /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
-        /// <returns>
-        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
-        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
-        /// 4. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
-        /// 5. An empty string.
-        /// </returns>
-        public static string Tr(string key, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(key, defaultText, languageName, allowFallback);
-        /// <summary>
-        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the specified language.
-        /// </summary>
-        /// <param name="key">The path of the target translated string.</param>
-        /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
-        /// <param name="defaultText">A string to return when the requested translation wasn't found for the specified language.</param>
-        /// <param name="languageName">The name of the language to get the translation for.</param>
-        /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
-        /// <returns>
-        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
-        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
-        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
-        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
-        /// 4. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
-        /// 5. An empty string.
-        /// </returns>
-        public static string Tr(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(key, stringComparison, defaultText, languageName, allowFallback);
-        #endregion (Static) Tr
-
         #region TranslateWithContext
         /// <summary>
         /// Gets the translation for the specified <paramref name="key"/> in the current language with a <see cref="TranslationContext"/> wrapper.
@@ -1361,7 +1283,98 @@ namespace Localization
         }
         #endregion TranslateWithContext
 
-        #region (Static) ContextTr
+        #endregion Methods
+
+        #endregion Instance
+
+        #region Static
+
+        #region Fields
+        /// <summary>
+        /// The extension prefix for translation config files.
+        /// </summary>
+        public const string ExtensionPrefix = ".loc";
+        /// <summary>
+        /// The separator character for string paths.
+        /// </summary>
+        public const char PathSeparator = '.';
+        #endregion Fields
+
+        #region Properties
+        /// <summary>
+        /// Gets the <see langword="static"/> <see cref="Loc"/> instance.
+        /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete
+        public static Loc Instance { get; } = new Loc();
+#pragma warning restore CS0618 // Type or member is obsolete
+        #endregion Properties
+
+        #region Methods
+
+        #region Tr
+        /// <summary>
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the current language.
+        /// </summary>
+        /// <param name="key">The path of the target translated string.</param>
+        /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
+        /// <returns>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
+        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
+        /// 4. An empty string.
+        /// </returns>
+        public static string Tr(string key, string? defaultText = null) => Instance.Translate(key, defaultText);
+        /// <summary>
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the current language.
+        /// </summary>
+        /// <param name="key">The path of the target translated string.</param>
+        /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
+        /// <param name="defaultText">A string to return when the requested translation wasn't found for the current language.</param>
+        /// <returns>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
+        /// 2. The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 3. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
+        /// 4. An empty string.
+        /// </returns>
+        public static string Tr(string key, StringComparison stringComparison, string? defaultText = null) => Instance.Translate(key, stringComparison, defaultText);
+        /// <summary>
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the specified language.
+        /// </summary>
+        /// <param name="key">The path of the target translated string.</param>
+        /// <param name="defaultText">A string to return when the requested translation wasn't found for the specified language.</param>
+        /// <param name="languageName">The name of the language to get the translation for.</param>
+        /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
+        /// <returns>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
+        /// 5. An empty string.
+        /// </returns>
+        public static string Tr(string key, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(key, defaultText, languageName, allowFallback);
+        /// <summary>
+        /// Uses the default Instance to get the translation for the specified <paramref name="key"/> in the specified language.
+        /// </summary>
+        /// <param name="key">The path of the target translated string.</param>
+        /// <param name="stringComparison">The <see cref="StringComparison"/> type to use for comparing strings.</param>
+        /// <param name="defaultText">A string to return when the requested translation wasn't found for the specified language.</param>
+        /// <param name="languageName">The name of the language to get the translation for.</param>
+        /// <param name="allowFallback">When <see langword="true"/>, the translation from the current language or fallback language may be used when not found in the specified <paramref name="languageName"/>; otherwise when <see langword="false"/>, only the translation from the specified language may be used.</param>
+        /// <returns>
+        /// The translation for the specified <paramref name="key"/> when found; otherwise, one of the fallback sources (in order):<br/>
+        /// 1. The <paramref name="defaultText"/> if it isn't <see langword="null"/>.<br/>
+        /// 2. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the current language if found.<br/>
+        /// 3. <i>(Only when <paramref name="allowFallback"/> is <see langword="true"/>)</i> The translation for the specified <paramref name="key"/> in the fallback language if found.<br/>
+        /// 4. The <paramref name="key"/> when UseKeyAsFallback is <see langword="true"/>.<br/>
+        /// 5. An empty string.
+        /// </returns>
+        public static string Tr(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false) => Instance.Translate(key, stringComparison, defaultText, languageName, allowFallback);
+        #endregion Tr
+
+        #region ContextTr
         /// <summary>
         /// Gets the translation for the specified <paramref name="key"/> in the current language with a <see cref="TranslationContext"/> wrapper.
         /// </summary>
@@ -1426,8 +1439,10 @@ namespace Localization
         /// </returns>
         /// <exception cref="MissingTranslationException">ThrowOnMissingTranslation was <see langword="true"/> and the requested <paramref name="key"/> wasn't found.</exception>
         public static TranslationContext ContextTr(string key, StringComparison stringComparison, string? defaultText, string languageName, bool allowFallback = false) => Instance.TranslateWithContext(key, stringComparison, defaultText, languageName, allowFallback);
-        #endregion (Static) TranslateWithContext
+        #endregion ContextTr
 
         #endregion Methods
+
+        #endregion Static
     }
 }
