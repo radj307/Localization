@@ -68,10 +68,6 @@ namespace Testing
         }
         static void Main(string[] args)
         {
-            bool r1 = TranslationDictionary.GlobMatch("*", "abc");
-            bool r2 = TranslationDictionary.GlobMatch("*", "a");
-            bool r3 = TranslationDictionary.GlobMatch("*", "");
-
             var jsonLoader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
             var d1 = jsonLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith("spaces.loc.json"))));
 
