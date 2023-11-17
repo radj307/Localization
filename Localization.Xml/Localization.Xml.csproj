@@ -11,8 +11,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>radj307.$(AssemblyName)</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>0.3.0</Version>
-    <FileVersion>0.3.0</FileVersion>
+    <Version>0.3.1</Version>
+    <FileVersion>0.3.1</FileVersion>
     <Copyright>Copyright © 2023 by $(Authors)</Copyright>
   </PropertyGroup>
   <ItemGroup>
