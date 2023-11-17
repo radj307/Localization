@@ -87,10 +87,10 @@ namespace Localization.Yaml
             else if (languageDictionaries.Count == 0)
                 return string.Empty;
 
-            var langDict = languageDictionaries.First().Value;
-            var root = new YamlMappingNode();
+            var lang = languageDictionaries.First();
+            var root = new YamlMappingNode { { "$LanguageName", lang.Key } };
 
-            foreach (var (key, value) in langDict)
+            foreach (var (key, value) in lang.Value)
             {
                 var path = key.Split(Loc.PathSeparator);
                 var node = CreateBranch(root, path[..^1]);

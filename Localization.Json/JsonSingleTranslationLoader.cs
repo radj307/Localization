@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Localization.Json
 {
@@ -131,6 +132,9 @@ namespace Localization.Json
 
                 node.Add(path[^1], value);
             }
+
+            // add the language name node
+            root.AddFirst(new JProperty("$LanguageName", languageName));
 
             return JsonConvert.SerializeObject(root, formatting, JsonSerializerSettings);
         }
