@@ -1,9 +1,10 @@
-﻿using Localization.Interfaces;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Localization.Json
 {
@@ -22,6 +23,7 @@ namespace Localization.Json
     ///   }
     /// }
     /// </code>
+    /// Key names should not include <see cref="Loc.PathSeparator"/> characters.
     /// </remarks>
     public class JsonTranslationLoader : ITranslationLoader
     {
@@ -52,6 +54,22 @@ namespace Localization.Json
         #endregion Properties
 
         #region Methods
+
+        #region (Private) GetKey
+        private static string GetKey(JProperty jProperty)
+        {
+            if (!jProperty.Path.Contains(' '))
+                return jProperty.Path; //< we can use the JSON path since it doesn't have spaces
+
+            var path = new List<string>();
+            for (JProperty? prop = (JProperty?)jProperty.Parent?.Parent; prop != null; prop = (JProperty?)prop.Parent?.Parent)
+            {
+                path.Add(prop.Name);
+            }
+            path.Reverse();
+            return string.Join(Loc.PathSeparator, path);
+        }
+        #endregion (Private) GetKey
 
         #region Deserialize
         /// <summary>
@@ -88,11 +106,11 @@ namespace Localization.Json
                     }
                     if (dict.TryGetValue(property.Name, out var existingSubDict))
                     {
-                        existingSubDict[property.Parent!.Path] = property.Value.ToObject<string>() ?? string.Empty;
+                        existingSubDict[GetKey(property)] = property.Value.ToObject<string>() ?? string.Empty;
                     }
                     else
                     {
-                        dict.Add(property.Name, new Dictionary<string, string>() { { property.Parent!.Path, property.Value.ToObject<string>() ?? string.Empty } });
+                        dict.Add(property.Name, new Dictionary<string, string>() { { GetKey(property), property.Value.ToObject<string>() ?? string.Empty } });
                     }
                     break;
                 case JTokenType.Object:

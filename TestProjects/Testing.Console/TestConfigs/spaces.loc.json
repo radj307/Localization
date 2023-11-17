@@ -1,0 +1,29 @@
+﻿{
+  "DefaultHotkeyNames": {
+    "Volume Up": {
+      "A S S": {
+        "T O": {
+          "English (US/CA)": "Muffins!"
+        }
+      }
+    },
+    "Volume Down": {
+      "English (US/CA)": "asdf"
+    },
+    "Toggle Mute": {
+      "English (US/CA)": "jkl;"
+    },
+    "Next Session": {
+      "English (US/CA)": "vbnm"
+    },
+    "Previous Session": {
+      "English (US/CA)": "zxcv"
+    },
+    "Un/Lock Session": {
+      "English (US/CA)": "qwer"
+    },
+    "Toggle Selected": {
+      "English (US/CA)": "tyui"
+    }
+  }
+}

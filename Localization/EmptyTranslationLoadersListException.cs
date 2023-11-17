@@ -1,5 +1,4 @@
-﻿using Localization.Interfaces;
-using System;
+﻿using System;
 
 namespace Localization
 {

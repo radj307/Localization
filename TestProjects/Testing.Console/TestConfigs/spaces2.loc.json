@@ -1,0 +1,12 @@
+﻿{
+  "$LanguageName": "English (US/CA)",
+
+  "DefaultHotkeyNames": {
+    "Volume Down": "asdf",
+    "Toggle Mute": "jkl;",
+    "Next Session": "vbnm",
+    "Previous Session": "zxcv",
+    "Un/Lock Session": "qwer",
+    "Toggle Selected": "tyui"
+  }
+}

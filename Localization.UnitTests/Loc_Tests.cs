@@ -428,8 +428,8 @@ namespace Localization.UnitTests
         public void MissingTranslationStringRequested_IsAccurate()
         {
             object? sender = null;
-            MissingTranslationStringRequestedEventArgs? eventArgs = null;
-            var handler = new MissingTranslationStringRequestedEventHandler((s, e) =>
+            MissingTranslationRequestedEventArgs? eventArgs = null;
+            var handler = new MissingTranslationRequestedEventHandler((s, e) =>
             {
                 sender = s;
                 eventArgs = e;

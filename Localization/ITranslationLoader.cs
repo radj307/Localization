@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Localization.Interfaces
+namespace Localization
 {
     /// <summary>
     /// Represents an instance that can deserialize strings and serialize language dictionaries.

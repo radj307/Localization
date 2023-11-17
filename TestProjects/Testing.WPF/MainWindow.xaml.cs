@@ -1,6 +1,4 @@
 ﻿using Localization;
-using Localization.Interfaces;
-using Localization.Json;
 using System.Windows;
 using System.Windows.Controls;
 

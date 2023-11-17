@@ -2,5 +2,5 @@
 
 namespace Localization.Internal
 {
-    public class ReadOnlyObservableCollection<T> : ObservableCollection<T>, IReadOnlyObservableCollection<T> { }
+    internal class ReadOnlyObservableCollection<T> : ObservableCollection<T>, IReadOnlyObservableCollection<T> { }
 }

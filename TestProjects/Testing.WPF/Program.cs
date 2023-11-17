@@ -82,7 +82,7 @@ namespace Testing.WPF
             Loc.Instance.MissingTranslationStringRequested += this.Instance_MissingTranslationStringRequested;
         }
 
-        private void Instance_MissingTranslationStringRequested(object sender, MissingTranslationStringRequestedEventArgs e)
+        private void Instance_MissingTranslationStringRequested(object sender, MissingTranslationRequestedEventArgs e)
         {
             if (e.Keys != null)
             {

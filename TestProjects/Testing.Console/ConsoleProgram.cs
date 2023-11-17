@@ -1,5 +1,4 @@
 ﻿using Localization;
-using Localization.Interfaces;
 using Localization.Json;
 using Localization.Xml;
 using Localization.Yaml;
@@ -69,7 +68,16 @@ namespace Testing
         }
         static void Main(string[] args)
         {
+            bool r1 = TranslationDictionary.GlobMatch("*", "abc");
+            bool r2 = TranslationDictionary.GlobMatch("*", "a");
+            bool r3 = TranslationDictionary.GlobMatch("*", "");
+
             var jsonLoader = Loc.Instance.AddTranslationLoader<JsonTranslationLoader>();
+            var d1 = jsonLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith("spaces.loc.json"))));
+
+            var jsonSingleLoader = Loc.Instance.AddTranslationLoader<JsonSingleTranslationLoader>();
+            var d2 = jsonSingleLoader.Deserialize(TestConfigHelper.GetManifestResourceString(TestConfigHelper.ResourceNames.First(name => name.EndsWith("spaces2.loc.json"))));
+
             var yamlLoader = Loc.Instance.AddTranslationLoader<YamlTranslationLoader>();
             var xmlLoader = Loc.Instance.AddTranslationLoader<XmlTranslationLoader>();
 

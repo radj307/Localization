@@ -16,6 +16,8 @@
     <None Remove="TestConfigs\fr.loc.json" />
     <None Remove="TestConfigs\it.loc.json" />
     <None Remove="TestConfigs\pt.loc.json" />
+    <None Remove="TestConfigs\spaces.loc.json" />
+    <None Remove="TestConfigs\spaces2.loc.json" />
     <None Remove="TestConfigs\test.loc.xml" />
   </ItemGroup>
 
@@ -26,6 +28,8 @@
     <EmbeddedResource Include="TestConfigs\fr.loc.json" />
     <EmbeddedResource Include="TestConfigs\it.loc.json" />
     <EmbeddedResource Include="TestConfigs\pt.loc.json" />
+    <EmbeddedResource Include="TestConfigs\spaces2.loc.json" />
+    <EmbeddedResource Include="TestConfigs\spaces.loc.json" />
     <EmbeddedResource Include="TestConfigs\test.loc.xml" />
   </ItemGroup>
 

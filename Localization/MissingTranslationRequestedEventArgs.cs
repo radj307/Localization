@@ -6,15 +6,15 @@ namespace Localization
     /// <summary>
     /// Event arguments that contain the missing translation string's path and the name of the language.
     /// </summary>
-    public sealed class MissingTranslationStringRequestedEventArgs : EventArgs
+    public sealed class MissingTranslationRequestedEventArgs : EventArgs
     {
         #region Constructor
-        internal MissingTranslationStringRequestedEventArgs(string languageName, IEnumerable<string> keys)
+        internal MissingTranslationRequestedEventArgs(string languageName, IEnumerable<string> keys)
         {
             LanguageName = languageName;
             Keys = keys;
         }
-        internal MissingTranslationStringRequestedEventArgs(string languageName, string key)
+        internal MissingTranslationRequestedEventArgs(string languageName, string key)
         {
             LanguageName = languageName;
             Key = key;
@@ -53,6 +53,6 @@ namespace Localization
     /// Event that occurs when a translation was requested but the specified key doesn't exist in the current language.
     /// </summary>
     /// <param name="sender">The <see cref="Loc"/> instance that fired the event.</param>
-    /// <param name="e">The <see cref="MissingTranslationStringRequestedEventArgs"/> instance for this event.</param>
-    public delegate void MissingTranslationStringRequestedEventHandler(object sender, MissingTranslationStringRequestedEventArgs e);
+    /// <param name="e">The <see cref="MissingTranslationRequestedEventArgs"/> instance for this event.</param>
+    public delegate void MissingTranslationRequestedEventHandler(object sender, MissingTranslationRequestedEventArgs e);
 }

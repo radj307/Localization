@@ -1,5 +1,4 @@
-﻿using Localization.Interfaces;
-using Localization.Json;
+﻿using Localization.Json;
 using Localization.Xml;
 using Localization.Yaml;
 

@@ -1,5 +1,4 @@
-﻿using Localization.Interfaces;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -21,9 +20,26 @@ namespace Localization.Json
     ///   }
     /// }
     /// </code>
+    /// Key names should not include <see cref="Loc.PathSeparator"/> characters.
     /// </remarks>
     public class JsonSingleTranslationLoader : JsonTranslationLoader, ITranslationLoader
     {
+        #region (Private) GetKey
+        private static string GetKey(JProperty jProperty)
+        {
+            if (!jProperty.Path.Contains(' '))
+                return jProperty.Path;
+
+            var path = new List<string>();
+            for (JProperty? prop = jProperty; prop != null; prop = (JProperty?)prop.Parent?.Parent)
+            {
+                path.Add(prop.Name);
+            }
+            path.Reverse();
+            return string.Join(Loc.PathSeparator, path);
+        }
+        #endregion (Private) GetKey
+
         #region Deserialize
         /// <summary>
         /// Deserializes the specified <paramref name="serializedData"/> using the single language syntax.
@@ -57,7 +73,7 @@ namespace Localization.Json
                                 goto case JTokenType.Object;
                             }
 
-                            translations.TryAdd(property.Path, property.Value.ToObject<string>() ?? string.Empty);
+                            translations.TryAdd(GetKey(property), property.Value.ToObject<string>() ?? string.Empty);
                             break;
                         }
                     case JTokenType.Object:

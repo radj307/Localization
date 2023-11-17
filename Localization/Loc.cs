@@ -1,5 +1,4 @@
-﻿using Localization.Interfaces;
-using Localization.Internal;
+﻿using Localization.Internal;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -144,16 +143,16 @@ namespace Localization
         /// <summary>
         /// Occurs when a translation wasn't found in the requested language.
         /// </summary>
-        public event MissingTranslationStringRequestedEventHandler? MissingTranslationStringRequested;
+        public event MissingTranslationRequestedEventHandler? MissingTranslationStringRequested;
         private void NotifyMissingTranslationStringRequested(string languageName, IEnumerable<string> keys)
         {
             if (!NotifyOnMissingTranslation) return;
-            MissingTranslationStringRequested?.Invoke(this, new MissingTranslationStringRequestedEventArgs(languageName, keys));
+            MissingTranslationStringRequested?.Invoke(this, new MissingTranslationRequestedEventArgs(languageName, keys));
         }
         private void NotifyMissingTranslationStringRequested(string languageName, string key)
         {
             if (!NotifyOnMissingTranslation) return;
-            MissingTranslationStringRequested?.Invoke(this, new MissingTranslationStringRequestedEventArgs(languageName, key));
+            MissingTranslationStringRequested?.Invoke(this, new MissingTranslationRequestedEventArgs(languageName, key));
         }
         /// <summary>
         /// Occurs when the CurrentLanguageName was changed for any reason.

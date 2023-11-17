@@ -1,9 +1,11 @@
 ﻿using Localization.Internal;
 using PropertyChanged;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 
 namespace Localization
 {
@@ -24,14 +26,9 @@ namespace Localization
         /// <summary>
         /// Creates a new empty <see cref="TranslationDictionary"/> instance.
         /// </summary>
-        public TranslationDictionary() : this(new ObservableConcurrentDictionary<string, string>()) { }
-        /// <summary>
-        /// Creates a new <see cref="TranslationDictionary"/> instance with the specified <paramref name="translations"/>.
-        /// </summary>
-        /// <param name="translations">A dictionary containing translations.</param>
-        public TranslationDictionary(ObservableConcurrentDictionary<string, string> translations)
+        public TranslationDictionary()
         {
-            _translationStrings = translations;
+            _translationStrings = new ObservableConcurrentDictionary<string, string>();
         }
         /// <summary>
         /// Creates a new <see cref="TranslationDictionary"/> instance with the specified <paramref name="translations"/>.
@@ -78,6 +75,19 @@ namespace Localization
             {
                 if (!this.TryAdd(path, value) && overwriteExisting)
                     this[path] = value;
+            }
+        }
+        /// <summary>
+        /// Gets all key value pairs with keys that begin with the specified <paramref name="keyPrefix"/>.
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, string>> GetMatching(string keyPrefix, StringComparison stringComparison = StringComparison.Ordinal)
+        {
+            foreach (var kvp in this)
+            {
+                if (kvp.Key.StartsWith(keyPrefix, stringComparison))
+                {
+                    yield return kvp;
+                }
             }
         }
         /// <summary>
