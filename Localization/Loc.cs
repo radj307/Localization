@@ -416,6 +416,29 @@ namespace Localization
         }
         #endregion GetTranslationLoaderForPath
 
+        #region GetTranslationLoadersForPath
+        /// <summary>
+        /// Gets all translation loaders that supports the specified <paramref name="filePath"/>.
+        /// Does not check if the <paramref name="filePath"/> is a valid filesystem path.
+        /// </summary>
+        /// <param name="filePath">A file name or path to find translation loaders for.</param>
+        /// <returns>All <see cref="ITranslationLoader"/> instances that can load from the <paramref name="filePath"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">There weren't any translation loaders in the list.</exception>
+        public IEnumerable<ITranslationLoader> GetTranslationLoadersForPath(string filePath)
+        {
+            if (TranslationLoaders.Count == 0)
+                throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
+
+            foreach (var loader in TranslationLoaders)
+            {
+                if (loader.CanLoadFromPath(filePath))
+                {
+                    yield return loader;
+                }
+            }
+        }
+        #endregion GetTranslationLoadersForPath
+
         #region GetTranslationLoader
         /// <summary>
         /// Gets a translation loader with the specified <paramref name="type"/>.
@@ -490,22 +513,59 @@ namespace Localization
         /// <summary>
         /// Loads translations from the specified <paramref name="serializedData"/>.
         /// </summary>
+        /// <remarks>
+        /// This method will continue trying loaders until the first successful result, or no loaders remain.<br/>
+        /// Whenever possible, you should use <see cref="LoadFromString(ITranslationLoader, string?)"/> instead as it can be much faster.
+        /// </remarks>
+        /// <param name="serializedData">A string containing the serialized contents of a translation config file.</param>
+        /// <param name="usedLoader">The <see cref="ITranslationLoader"/> instance that successfully loaded the specified <paramref name="serializedData"/> <see cref="string"/>.</param>
+        /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
+        public bool LoadFromString(string? serializedData, out ITranslationLoader usedLoader)
+        {
+            if (serializedData != null)
+            {
+                foreach (var loader in TranslationLoaders)
+                {
+                    try
+                    {
+                        if (LoadFromString(loader, serializedData))
+                        {
+                            usedLoader = loader;
+                            return true;
+                        }
+                    }
+                    catch (Exception ex) when (!(ex is EmptyTranslationLoadersListException)) { }
+                }
+            }
+            usedLoader = null!;
+            return false;
+        }
+        /// <summary>
+        /// Loads translations from the specified <paramref name="serializedData"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method will continue trying loaders until the first successful result, or no loaders remain.<br/>
+        /// Whenever possible, you should use <see cref="LoadFromString(ITranslationLoader, string?)"/> instead as it can be much faster.
+        /// </remarks>
         /// <param name="serializedData">A string containing the serialized contents of a translation config file.</param>
         /// <returns><see langword="true"/> when successful; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
-        [Obsolete("This method is slow, you should use LoadFromString(ITranslationLoader, string?) instead.")]
         public bool LoadFromString(string? serializedData)
         {
-            foreach (var loader in TranslationLoaders)
+            if (serializedData != null)
             {
-                try
+                foreach (var loader in TranslationLoaders)
                 {
-                    if (LoadFromString(loader, serializedData))
+                    try
                     {
-                        return true;
+                        if (LoadFromString(loader, serializedData))
+                        {
+                            return true;
+                        }
                     }
+                    catch (Exception ex) when (!(ex is EmptyTranslationLoadersListException)) { }
                 }
-                catch (Exception ex) when (!(ex is EmptyTranslationLoadersListException)) { }
             }
             return false;
         }
@@ -525,9 +585,9 @@ namespace Localization
             else if (!File.Exists(filePath))
                 return false;
 
-            foreach (var loader in TranslationLoaders)
+            foreach (var loader in GetTranslationLoadersForPath(filePath))
             {
-                if (loader.CanLoadFromPath(filePath) && loader.TryLoadFromFile(filePath, out var languages))
+                if (loader.TryLoadFromFile(filePath, out var languages))
                 {
                     AddLanguage(languages);
                     return true;
@@ -546,28 +606,32 @@ namespace Localization
         /// </remarks>
         /// <param name="directoryPath">The path of a directory to load translation configs from.</param>
         /// <param name="recurse">When <see langword="true"/>, translation configs in subdirectories are also loaded.</param>
-        /// <returns>A list of translation config file paths that weren't loaded because none of the available translation loaders support them.</returns>
+        /// <param name="returnFailedFilenames">When <see langword="true"/>, the returned paths are all of the files that weren't loaded; otherwise when <see langword="true"/>, the returned paths are the files that were loaded.</param>
+        /// <returns>When <paramref name="returnFailedFilenames"/> is <see langword="true"/>, the files that couldn't be loaded; otherwise, the files that were successfully loaded.</returns>
         /// <exception cref="EmptyTranslationLoadersListException">No <see cref="ITranslationLoader"/> instances were added to <see cref="TranslationLoaders"/> prior to calling this method.</exception>
-        public IEnumerable<string>? LoadFromDirectory(string directoryPath, bool recurse = false)
+        public IEnumerable<string>? LoadFromDirectory(string directoryPath, bool recurse = false, bool returnFailedFilenames = true)
         {
             if (TranslationLoaders.Count == 0)
                 throw new EmptyTranslationLoadersListException($"There are no {nameof(ITranslationLoader)} instances in the {nameof(TranslationLoaders)} list!");
             else if (!Directory.Exists(directoryPath))
                 return null;
 
-            var failedFiles = new List<string>();
+            var l = new List<string>();
             foreach (var filePath in Directory.EnumerateFiles(directoryPath, '*' + ExtensionPrefix + '*', new EnumerationOptions() { RecurseSubdirectories = recurse }))
             {
                 try
                 {
-                    if (!LoadFromFile(filePath))
+                    if (LoadFromFile(filePath))
                     {
-                        failedFiles.Add(filePath);
+                        if (!returnFailedFilenames)
+                            l.Add(filePath);
                     }
+                    else if (returnFailedFilenames)
+                        l.Add(filePath);
                 }
                 catch (Exception ex) when (!(ex is EmptyTranslationLoadersListException)) { }
             }
-            return failedFiles;
+            return l;
         }
         #endregion LoadFromDirectory
 
