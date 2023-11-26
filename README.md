@@ -1,7 +1,10 @@
 # radj307.Localization
 
 Easy to use localization libraries for C# & WPF.  
-Loosely based on [CodingSeb.Localization](https://github.com/codingseb/Localization).
+Loosely based on [CodingSeb.Localization](https://github.com/codingseb/Localization).  
+
+> ### :warning: Note
+> This is still pre-1.0 and breaking changes should be expected.
 
 | Nuget                         | Version                                                                                                                                                               |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
